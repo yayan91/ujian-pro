@@ -390,6 +390,19 @@
             tindakKecurangan("Keluar dari Layar Penuh"); 
         }
     });
+	
+	// 3. Sensor Kehilangan Fokus (Menangkal Split-Screen / Pop-up / Floating Window)
+    window.addEventListener("blur", function() {
+        // Jika ujian sedang jalan, dan dia tidak sedang menekan tombol "Kembali" resmi
+        if (isUjianBerlangsung && !izinKeluarResmi) { 
+            // Kasih jeda sedikit (200ms) untuk mencegah salah tilang karena kedipan sistem OS
+            setTimeout(() => {
+                if (document.hidden || !document.hasFocus()) {
+                    tindakKecurangan("Membuka Aplikasi Lain (Split Screen / Pop-up)"); 
+                }
+            }, 200);
+        }
+    });
 
     function tindakKecurangan(jenis) {
         let sekarang = Date.now();
@@ -493,12 +506,33 @@
             fetch(API_URL, { method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({ action: "check_session", username: username, device_id: deviceId })
             }).then(res => res.json()).then(res => { 
                 if (res.status === "invalid") { 
-                    clearInterval(sessionChecker); 
-                    Swal.fire({ icon: 'error', title: 'Sesi Berakhir!', text: 'Akun Anda telah login di perangkat lain. Anda akan dikeluarkan otomatis.', allowOutsideClick: false, confirmButtonText: 'Keluar'
-                    }).then(() => { logout(); });
+                    clearInterval(sessionChecker); // Hentikan pengecekan
+                    
+                    // 1. TENDANG PAKSA TANPA KONFIRMASI (LANGSUNG LOGOUT)
+                    localStorage.removeItem("ujian_username"); 
+                    localStorage.removeItem("ujian_tingkatan");
+                    document.getElementById('login-screen').style.display = 'flex';
+                    document.getElementById('main-app').style.display = 'none';
+                    document.getElementById('password').value = "";
+                    document.getElementById('btn-login-text').innerText = "Masuk Sekarang";
+                    document.getElementById('btn-login-text').disabled = false;
+                    
+                    // Pastikan layar ujian juga ditutup jika sedang terbuka
+                    if (typeof isUjianBerlangsung !== 'undefined' && isUjianBerlangsung) {
+                        keluarUjianPaksa();
+                    }
+
+                    // 2. MUNCULKAN POP-UP PEMBERITAHUAN DI LAYAR LOGIN
+                    Swal.fire({ 
+                        icon: 'error', 
+                        title: 'Terlempar Keluar!', 
+                        text: 'Akun Anda baru saja login di perangkat lain.', 
+                        confirmButtonText: 'Mengerti',
+                        allowOutsideClick: false
+                    });
                 }
             });
-        }, 30000); 
+        }, 30000);
         
         Swal.fire({ icon: 'success', title: 'Login Berhasil', text: 'Selamat mengerjakan ujian!', timer: 1500, showConfirmButton: false });
     }
