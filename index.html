@@ -9,41 +9,43 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
-            --primary: #1e3a8a; /* Navy Blue Elegan */
-            --accent: #fbbf24; /* Emas Mewah */
-            --bg-light: #f8fafc;
-            --text-main: #1e293b;
+            --primary: #1e40af; /* Biru Dongker CBT (Fokus & Mewah) */
+            --accent: #eab308; /* Kuning/Emas Redup */
+            --bg-light: #e2e8f0; /* Abu-abu kalem (Tidak menyilaukan mata) */
+            --text-main: #334155; /* Teks abu-abu gelap */
             --text-muted: #64748b;
-            --card-bg: #ffffff;
+            --card-bg: #ffffff; /* Putih bersih untuk area baca soal */
         }
         
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        /* --- JURUS ANTI TEKS TERPOTONG --- */
+        * { 
+            box-sizing: border-box; margin: 0; padding: 0; 
+            font-family: 'Poppins', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+            word-wrap: break-word; 
+        }
         body { background-color: var(--bg-light); color: var(--text-main); overflow: hidden; }
+        
+        .card-title { line-height: 1.4; margin-bottom: 8px; font-size: 15px; font-weight: 700; color: var(--primary); }
+        .card-desc { line-height: 1.5; font-size: 13px; color: var(--text-muted); }
 
-        /* --- HALAMAN LOGIN MEWAH --- */
+        /* --- HALAMAN LOGIN RESMI ALA TKA --- */
         #login-screen {
             height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px;
-            background: url('https://images.unsplash.com/photo-1513258496099-48166314a108?q=80&w=1000&auto=format&fit=crop') center/cover;
+            background: linear-gradient(135deg, #1e40af 0%, #334155 100%);
             position: relative;
-        }
-        #login-screen::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(30,58,138,0.9) 0%, rgba(15,23,42,0.8) 100%);
         }
         .login-box {
             position: relative; z-index: 2; width: 100%; max-width: 380px; padding: 40px 30px; border-radius: 24px;
             background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 25px 50px rgba(0,0,0,0.3); text-align: center; color: white;
         }
-        
         .logo-login { width: 90px; height: 90px; margin-bottom: 15px; border-radius: 50%; padding: 5px; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        
         .login-box h2 { font-weight: 700; font-size: 24px; margin-bottom: 5px; letter-spacing: 1px; }
         .login-box p.subtitle { font-size: 13px; color: rgba(255,255,255,0.8); margin-bottom: 30px; }
         
         .input-group { position: relative; margin-bottom: 20px; text-align: left; }
         .input-group i:not(.eye-icon) { position: absolute; left: 18px; top: 16px; color: rgba(255,255,255,0.6); font-size: 18px; }
-        
-        /* FIX: Ikon mata sudah digeser dengan padding-right 45px */
         .input-group input {
             width: 100%; padding: 15px 45px 15px 45px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3);
             background: rgba(0,0,0,0.2); color: white; font-size: 15px; outline: none; transition: 0.3s;
@@ -60,25 +62,37 @@
 
         /* --- APLIKASI UTAMA --- */
         #main-app { display: none; height: 100vh; flex-direction: column; }
-        .header { background: var(--primary); color: white; padding: 25px 20px 60px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; position: relative; }
-        .header h3 { font-size: 20px; font-weight: 600; }
+        .header { background: var(--primary); color: white; padding: 25px 20px 30px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; position: relative; }
+        .header h3 { font-size: 20px; font-weight: 600; line-height: 1.2; margin-bottom: 2px; }
         .header p { font-size: 13px; opacity: 0.8; }
         
-        .content-area { flex: 1; overflow-y: auto; padding: 0 20px 100px 20px; margin-top: -40px; z-index: 10; }
-        .page { display: none; animation: fadeIn 0.4s ease; }
+        /* FIX: INI YANG HILANG TADI! PENGATUR PAGE & JARAK */
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 20px 100px 20px; z-index: 10; } 
+        .page { display: none; animation: fadeIn 0.3s ease; }
         .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Kartu (Cards) */
-        .card { background: var(--card-bg); padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 15px; position: relative; overflow: hidden; }
-        .card-title { font-size: 16px; font-weight: 700; margin-bottom: 5px; color: var(--primary); }
-        .card-desc { font-size: 13px; color: var(--text-muted); }
+        /* CSS BARU UNTUK KARTU 2 KOLOM (UJIAN & HASIL) */
+        .grid-2-col { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         
-        .exam-card { border-left: 5px solid var(--accent); cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
-        .exam-card:active { transform: scale(0.98); }
-        .exam-icon { background: rgba(30,58,138,0.1); width: 40px; height: 40px; border-radius: 12px; display: flex; justify-content: center; align-items: center; color: var(--primary); font-size: 18px; }
+        .exam-card-grid {
+            background: var(--card-bg); border-radius: 20px; padding: 15px; cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; transition: 0.2s;
+            border-top: 4px solid var(--accent); display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+        }
+        .exam-card-grid:active { transform: scale(0.95); }
+        .exam-icon-grid {
+            background: rgba(30,64,175,0.1); width: 40px; height: 40px; border-radius: 12px;
+            display: flex; justify-content: center; align-items: center; color: var(--primary); font-size: 18px; margin-bottom: 10px;
+        }
+        
+        .result-card-grid {
+            background: var(--card-bg); border-radius: 20px; padding: 15px; text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-top: 4px solid #10b981;
+        }
+        .skor-besar { font-size: 28px; font-weight: 800; color: #10b981; margin: 10px 0; }
 
-        /* Label Penting di Pengumuman */
+        .card { background: var(--card-bg); padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 15px; position: relative; overflow: hidden; }
         .badge { position: absolute; top: 15px; right: 15px; font-size: 10px; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
         .badge-penting { background: #fee2e2; color: #ef4444; }
         .badge-biasa { background: #e0f2fe; color: #0284c7; }
@@ -98,8 +112,7 @@
         .iframe-container { width: 100%; height: calc(100vh - 120px); border-radius: 15px; overflow: hidden; background: white; margin-top: 50px; }
         iframe { width: 100%; height: 100%; border: none; }
         .btn-kembali { position: fixed; top: 10px; left: 10px; background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; z-index: 999; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; }
-		
-		/* Overlay Info Ujian (Jam & Baterai) */
+        
         .info-ujian-overlay {
             position: fixed; top: 15px; right: 20px;
             background: rgba(0,0,0,0.7); color: white; padding: 8px 15px;
@@ -107,21 +120,17 @@
             z-index: 9999; display: flex; gap: 15px; backdrop-filter: blur(5px);
             box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);
         }
-		
-		/* Footer Aplikasi */
+        
         .footer-app {
             text-align: center; margin-top: 40px; padding-top: 20px; padding-bottom: 20px;
             font-size: 11px; color: var(--text-muted); border-top: 1px dashed #cbd5e1;
         }
         .footer-title { font-weight: 700; color: var(--primary); font-size: 12px; margin-bottom: 3px; letter-spacing: 1px; }
-		
-        /* Formulir Pengaturan */
+        
         .form-label { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; display: block; }
         .form-input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 14px; margin-bottom: 15px; outline: none; }
         .form-input:focus { border-color: var(--primary); }
-        .btn-save { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; }
-        .btn-logout { width: 100%; padding: 15px; background: #fee2e2; color: #ef4444; border: none; border-radius: 12px; font-weight: 700; margin-top: 15px; cursor: pointer; }
-
+        .btn-save { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 10px rgba(30,64,175,0.2); }
     </style>
 </head>
 <body>
@@ -129,7 +138,6 @@
 <div id="login-screen">
     <div class="login-box">
         <img src="https://lh3.googleusercontent.com/u/0/d/1Z6g-sCdw-k7W8dnw12NeagPkroLlmk-L" alt="Logo" class="logo-login">
-        
         <h2>Portal Ujian</h2>
         <p class="subtitle">UPT SPF SMP Negeri 16 Makassar</p>
         
@@ -149,21 +157,31 @@
 
 <div id="main-app">
     <div class="header" id="header-area">
-        <h3>Halo, <span id="user-name-display">Siswa</span> 👋</h3>
-        <p>Kelas <span id="user-kelas"></span> | NISN: <span id="user-nisn"></span></p>
-		<div style="margin-top: 12px; font-size: 12px; font-weight: 400; color: rgba(255,255,255,0.9);">
-            <i class="far fa-calendar-alt"></i> <span id="live-date">Memuat tanggal...</span> &nbsp;|&nbsp; 
-            <i class="far fa-clock"></i> <span id="live-time">00:00:00</span>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="flex: 1; padding-right: 10px;">
+                <h3>Halo, <span id="user-name-display">Siswa</span> 👋</h3>
+                <p>Kelas <span id="user-kelas"></span> | NISN: <span id="user-nisn"></span></p>
+                <div style="margin-top: 10px; font-size: 11px; font-weight: 400; color: rgba(255,255,255,0.9);">
+                    <i class="far fa-calendar-alt"></i> <span id="live-date">Memuat tanggal...</span><br>
+                    <i class="far fa-clock"></i> <span id="live-time">00:00:00</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 8px;">
+                <button onclick="sinkronData()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; width: 38px; height: 38px; border-radius: 12px; cursor: pointer; font-size: 14px; backdrop-filter: blur(5px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center;" title="Sinkron Data">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button onclick="logout()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; width: 38px; height: 38px; border-radius: 12px; cursor: pointer; font-size: 14px; backdrop-filter: blur(5px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center;" title="Keluar">
+                    <i class="fas fa-power-off"></i>
+                </button>
+            </div>
         </div>
-        <button onclick="sinkronData()" style="position: absolute; right: 20px; top: 30px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-size: 12px; backdrop-filter: blur(5px);">
-            <i class="fas fa-sync-alt"></i> Sinkron
-        </button>
     </div>
 
     <div class="content-area">
         
         <div id="page-dashboard" class="page active">
-            <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%); color: white; border: none; box-shadow: 0 15px 30px rgba(30,58,138,0.3);">
+            <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%); color: white; border: none; box-shadow: 0 15px 30px rgba(30,64,175,0.3);">
                 <div class="card-title" style="color: var(--accent); font-size: 18px;">Siap Ujian?</div>
                 <p style="font-size: 13px; opacity: 0.9; margin-top: 5px;">Pastikan koneksi internet stabil. Kerjakan dengan jujur dan teliti.</p>
             </div>
@@ -182,22 +200,21 @@
 
         <div id="page-ujian" class="page">
             <h4 style="margin: 0 0 15px 5px; color: var(--text-main);">Daftar Ujian Anda</h4>
-            <div id="list-ujian">
-                <div class="card"><p class="card-desc" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Memuat jadwal...</p></div>
+            <div id="list-ujian" class="grid-2-col">
+                <div class="card" style="grid-column: span 2;"><p class="card-desc" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Memuat jadwal...</p></div>
             </div>
         </div>
 
         <div id="page-hasil" class="page">
             <h4 style="margin: 0 0 15px 5px; color: var(--text-main);">Rekap Nilai</h4>
-            <div id="list-hasil">
-                <div class="card"><p class="card-desc" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Memuat nilai...</p></div>
+            <div id="list-hasil" class="grid-2-col">
+                <div class="card" style="grid-column: span 2;"><p class="card-desc" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Memuat nilai...</p></div>
             </div>
         </div>
 
         <div id="page-pengaturan" class="page">
             <div class="card">
                 <h4 style="margin-bottom: 20px; color: var(--primary);">Profil Saya</h4>
-                
                 <label class="form-label">NISN (Terkunci)</label>
                 <input type="text" id="set-nisn" class="form-input" readonly style="background: #e2e8f0; color: #64748b; padding: 10px; margin-bottom: 10px;">
                 
@@ -222,24 +239,20 @@
                 
                 <label class="form-label" style="color: var(--primary);">Ganti Password Baru</label>
                 <input type="password" id="new-password" class="form-input" placeholder="Ketik password baru...">
-                
                 <button class="btn-save" onclick="simpanPassword()"><i class="fas fa-save"></i> Simpan Password Baru</button>
             </div>
-            
-            <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Keluar Aplikasi</button>
         </div>
-		
-		<div class="footer-app">
+        
+        <div class="footer-app">
             <div class="footer-title">UJIAN PROJECT</div>
             <p>Muhammad Hasratul - Developer & Founder</p>
-            <p>&copy; <span id="tahun-aktif">2026</span> Mappaguru Online</p>
+            <p>© <span id="tahun-aktif">2026</span> Mappaguru Online</p>
         </div>
-		
     </div>
 
     <div id="area-iframe" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-light); z-index: 900;">
         <button class="btn-kembali" onclick="tutupUjian()"><i class="fas fa-arrow-left"></i> Selesai / Kembali</button>
-		<div class="info-ujian-overlay" id="overlay-info" style="display: none;">
+        <div class="info-ujian-overlay" id="overlay-info" style="display: none;">
             <span><i class="fas fa-clock"></i> <span id="jam-overlay">00:00</span></span>
             <span><i class="fas fa-battery-half"></i> <span id="baterai-overlay">100%</span></span>
         </div>
@@ -266,7 +279,6 @@
     let sessionChecker;
     let dataSiswaAktif = {}; 
 
-    // Visual Toggle Password
     function togglePassword() {
         const input = document.getElementById('password');
         const icon = document.querySelector('.eye-icon');
@@ -274,7 +286,6 @@
         else { input.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }
     }
 
-    // Navigasi Bawah
     function navigasi(pageId, element) {
         document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -282,27 +293,36 @@
         element.classList.add('active');
     }
 
-    // ==========================================
-    // SISTEM UJIAN & POLISI DIGITAL (ANTI-CURANG)
-    // ==========================================
     let mapelAktif = "";
     let isUjianBerlangsung = false;
     let jumlahPelanggaran = 0;
-    
-    // TAMBAHAN: Variabel untuk mencegah tilang ganda & salah tilang
     let waktuTilangTerakhir = 0; 
     let izinKeluarResmi = false; 
-
-    function bukaUjian(urlForm, mapel) {
+    
+    function konfirmasiUjian(urlForm, mapel) {
         if(dataSiswaAktif.status_ujian === "Terblokir") {
             Swal.fire({ icon: 'error', title: 'Akses Diblokir!', text: 'Akses Anda dikunci karena terdeteksi melakukan kecurangan. Silakan lapor ke Pengawas!' });
             return;
         }
+        Swal.fire({
+            title: 'Mulai Ujian ' + mapel + '?',
+            text: "Sistem Anti-Curang akan diaktifkan. Pastikan baterai dan koneksi internet Anda aman sebelum menekan tombol mulai!",
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#1e40af', 
+            cancelButtonColor: '#9ca3af',
+            confirmButtonText: '<i class="fas fa-play"></i> Ya, Mulai Ujian!',
+            cancelButtonText: 'Nanti Dulu'
+        }).then((result) => {
+            if (result.isConfirmed) { bukaUjian(urlForm, mapel); }
+        });
+    }
 
+    function bukaUjian(urlForm, mapel) {
         mapelAktif = mapel;
         jumlahPelanggaran = 0; 
         isUjianBerlangsung = true;
-        izinKeluarResmi = false; // Reset izin
+        izinKeluarResmi = false; 
 
         document.getElementById('header-area').style.display = 'none';
         document.getElementById('bottom-navbar').style.display = 'none';
@@ -312,7 +332,6 @@
         document.getElementById('overlay-info').style.display = 'flex';
         document.getElementById('frame-ujian').src = urlForm;
 
-        // MASUK MODE FULLSCREEN
         if (area.requestFullscreen) { area.requestFullscreen(); }
         else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); }
 
@@ -320,7 +339,7 @@
     }
 
     function tutupUjian() {
-        izinKeluarResmi = true; // Beri tahu polisi digital: "Ini keluar resmi, jangan ditilang!"
+        izinKeluarResmi = true; 
         
         if (document.fullscreenElement) {
             if (document.exitFullscreen) { document.exitFullscreen(); }
@@ -335,7 +354,7 @@
                 if (result.isConfirmed) { 
                     keluarUjianPaksa(); 
                 } else {
-                    izinKeluarResmi = false; // Batal keluar, sensor diaktifkan lagi
+                    izinKeluarResmi = false; 
                     let area = document.getElementById('area-iframe');
                     if (area.requestFullscreen) { area.requestFullscreen(); }
                     else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); }
@@ -360,9 +379,7 @@
         document.getElementById('frame-ujian').src = "";
     }
 
-    // --- SENSOR KECURANGAN ---
     document.addEventListener("visibilitychange", function() {
-        // Hanya tilang kalau ujian berlangsung DAN tidak ada izin keluar resmi
         if (isUjianBerlangsung && !izinKeluarResmi && document.visibilityState === 'hidden') { 
             tindakKecurangan("Pindah Tab / Minimize Aplikasi"); 
         }
@@ -374,10 +391,8 @@
         }
     });
 
-    // --- EKSEKUSI HUKUMAN (DENGAN COOLDOWN) ---
     function tindakKecurangan(jenis) {
         let sekarang = Date.now();
-        // Cek Cooldown: Jika jarak pelanggaran kurang dari 3 detik (3000 ms), ABAIKAN! (Ini mencegah tilang ganda)
         if (sekarang - waktuTilangTerakhir < 3000) return; 
         waktuTilangTerakhir = sekarang;
 
@@ -391,26 +406,23 @@
             dataSiswaAktif.status_ujian = "Terblokir"; 
         }
 
-        // Lapor ke Server Database
         fetch(API_URL, {
             method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"},
             body: JSON.stringify({ action: "log_cheat", username: document.getElementById('set-username').value, nama: document.getElementById('set-nama').value, kelas: document.getElementById('set-kelas2').value, mapel: mapelAktif, jenis: jenisLaporan, keterangan: keteranganTilang })
         });
 
-        // Hukuman Peringatan Layar
         if (jumlahPelanggaran === 1) {
             Swal.fire({ icon: 'warning', title: 'Peringatan 1/3', text: 'Anda terdeteksi ' + jenis + '. Aktivitas ini dicatat di server!' });
         } else if (jumlahPelanggaran === 2) {
             Swal.fire({ icon: 'warning', title: 'Peringatan 2/3', text: 'JANGAN tinggalkan layar ujian! Sekali lagi keluar, ujian ditutup paksa.' });
         } else if (jumlahPelanggaran >= 3) {
-            keluarUjianPaksa(); // Tendang kembali ke menu awal
+            keluarUjianPaksa(); 
             setTimeout(() => {
                 Swal.fire({ icon: 'error', title: 'UJIAN DIHENTIKAN!', text: 'Anda telah diblokir karena 3x pelanggaran. Segera lapor ke Pengawas!', confirmButtonText: 'Mengerti', allowOutsideClick: false });
             }, 500);
         }
     }
 
-    // --- FUNGSI PANTAU JAM & BATERAI OVERLAY ---
     function pantauOverlayUjian() {
         const elJam = document.getElementById('jam-overlay');
         const elBaterai = document.getElementById('baterai-overlay');
@@ -421,16 +433,14 @@
             elJam.innerText = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
         }, 1000);
 
-        // Cek Baterai (Hanya jalan di browser yang support seperti Chrome Android)
         if (navigator.getBattery) {
             navigator.getBattery().then(function(battery) {
                 elBaterai.innerText = Math.round(battery.level * 100) + '%';
                 battery.addEventListener('levelchange', function() { elBaterai.innerText = Math.round(battery.level * 100) + '%'; });
             });
-        } else { elBaterai.innerText = "N/A"; } // Jika di iOS/Safari tidak didukung
+        } else { elBaterai.innerText = "N/A"; }
     }
 
-    // LOGIN
     function doLogin() {
         const user = document.getElementById('username').value;
         const pass = document.getElementById('password').value;
@@ -460,7 +470,6 @@
         });
     }
 
-    // SETUP APLIKASI SAAT BERHASIL MASUK
     function masukAplikasi(username) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-app').style.display = 'flex';
@@ -469,7 +478,7 @@
         document.getElementById('user-kelas').innerText = dataSiswaAktif.kelas;
         document.getElementById('user-nisn').innerText = dataSiswaAktif.nisn;
         document.getElementById('set-username').value = username;
-		// Isi profil tambahan
+        
         document.getElementById('set-nisn').value = dataSiswaAktif.nisn;
         document.getElementById('set-nama').value = dataSiswaAktif.nama;
         document.getElementById('set-kelas2').value = dataSiswaAktif.kelas;
@@ -482,21 +491,25 @@
         
         sessionChecker = setInterval(() => {
             fetch(API_URL, { method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({ action: "check_session", username: username, device_id: deviceId })
-            }).then(res => res.json()).then(res => { if (res.status === "invalid") { alert(res.message); logout(); }});
-        }, 30000);
+            }).then(res => res.json()).then(res => { 
+                if (res.status === "invalid") { 
+                    clearInterval(sessionChecker); 
+                    Swal.fire({ icon: 'error', title: 'Sesi Berakhir!', text: 'Akun Anda telah login di perangkat lain. Anda akan dikeluarkan otomatis.', allowOutsideClick: false, confirmButtonText: 'Keluar'
+                    }).then(() => { logout(); });
+                }
+            });
+        }, 30000); 
         
-        // ALERT LOGIN BERHASIL
         Swal.fire({ icon: 'success', title: 'Login Berhasil', text: 'Selamat mengerjakan ujian!', timer: 1500, showConfirmButton: false });
     }
 
-    // FUNGSI TARIK DATA (FIXED: typo dihapus)
     function tarikDataServer(user, tingkat, isSync = false) {
         fetch(API_URL, {
             method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"},
             body: JSON.stringify({ action: "get_data", username: user, tingkatan: tingkat })
         }).then(res => res.json()).then(res => {
             if(res.status === "success") {
-			dataSiswaAktif.status_ujian = res.data.status_ujian; // Update status blokir terbaru
+                dataSiswaAktif.status_ujian = res.data.status_ujian; 
                 renderPengumuman(res.data.pengumuman);
                 renderUjian(res.data.ujian);
                 renderHasil(res.data.hasil);
@@ -505,7 +518,6 @@
         });
     }
 
-    // FUNGSI SINKRON DATA
     function sinkronData() {
         let user = localStorage.getItem("ujian_username");
         let tingkat = localStorage.getItem("ujian_tingkatan");
@@ -515,7 +527,6 @@
         }
     }
 
-    // RENDER PENGUMUMAN
     function renderPengumuman(data) {
         const wadah = document.getElementById('list-pengumuman');
         wadah.innerHTML = "";
@@ -534,68 +545,68 @@
         });
         document.getElementById('dashboard-info').innerHTML = `<p class="card-desc">Ada ${data.length} pengumuman baru untuk Anda.</p>`;
     }
-	
-	// Fungsi pintar menebak hari dari teks bahasa Indonesia
-    // Fungsi pintar menerjemahkan waktu robot Google ke bahasa Indonesia
+    
     function formatTanggalIndo(waktuGoogle) {
         let d = new Date(waktuGoogle);
-        
-        // Kalau formatnya aneh dan tidak bisa dibaca, tampilkan apa adanya
         if(isNaN(d)) return waktuGoogle; 
-        
         const namaHari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
         const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-        
         let hari = namaHari[d.getDay()];
         let tanggal = d.getDate();
         let bulan = namaBulan[d.getMonth()];
         let tahun = d.getFullYear();
-        
-        // Hasil akhir: Jumat, 6 Maret 2026
         return hari + ", " + tanggal + " " + bulan + " " + tahun;
     }
 
-    // RENDER UJIAN
     function renderUjian(data) {
         const wadah = document.getElementById('list-ujian');
         wadah.innerHTML = "";
-        if(data.length === 0) { wadah.innerHTML = '<div class="card"><p class="card-desc" style="text-align: center;">Belum ada ujian aktif untuk kelas Anda</p></div>'; return; }
+        if(data.length === 0) { 
+            wadah.classList.remove('grid-2-col'); 
+            wadah.innerHTML = '<div class="card" style="width: 100%;"><p class="card-desc" style="text-align: center;">Belum ada ujian aktif untuk kelas Anda</p></div>'; 
+            return; 
+        }
         
+        wadah.classList.add('grid-2-col');
         data.forEach(item => {
             wadah.innerHTML += `
-                <div class="card exam-card" onclick="bukaUjian('${item.link}', '${item.mapel}')">
-                    <div style="flex: 1;">
-                        <div class="card-title">${item.mapel}</div>
-                        <p class="card-desc"><i class="far fa-clock"></i> ${item.durasi} Menit | Jadwal: ${formatTanggalIndo(item.jadwal)}</p>
+                <div class="exam-card-grid" onclick="konfirmasiUjian('${item.link}', '${item.mapel}')">
+                    <div class="exam-icon-grid"><i class="fas fa-laptop-code"></i></div>
+                    <div class="card-title" style="font-size: 13px; line-height: 1.2;">${item.mapel}</div>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 5px;">
+                        <i class="far fa-clock"></i> ${item.durasi} Mnt
                     </div>
-                    <div class="exam-icon"><i class="fas fa-chevron-right"></i></div>
+                    <div style="font-size: 10px; color: var(--accent); margin-top: 3px; font-weight: 600;">
+                        ${formatTanggalIndo(item.jadwal)}
+                    </div>
                 </div>
             `;
         });
     }
 
-    // RENDER HASIL LENGKAP
     function renderHasil(data) {
         const wadah = document.getElementById('list-hasil');
         wadah.innerHTML = "";
-        if(data.length === 0) { wadah.innerHTML = '<div class="card"><p class="card-desc" style="text-align: center;">Belum ada nilai yang keluar</p></div>'; return; }
+        if(data.length === 0) { 
+            wadah.classList.remove('grid-2-col'); 
+            wadah.innerHTML = '<div class="card" style="width: 100%;"><p class="card-desc" style="text-align: center;">Belum ada nilai yang keluar</p></div>'; 
+            return; 
+        }
         
+        wadah.classList.add('grid-2-col');
         data.forEach(item => {
             wadah.innerHTML += `
-                <div class="card" style="display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #10b981;">
-                    <div>
-                        <div class="card-title" style="margin: 0; color: var(--text-main);">${item.mapel}</div>
-                        <p class="card-desc" style="font-size: 11px;">Tingkatan Kelas: ${item.tingkatan || '-'}</p>
-                    </div>
-                    <div style="background: #ecfdf5; color: #10b981; padding: 8px 15px; border-radius: 10px; font-weight: bold; font-size: 18px; border: 1px solid #a7f3d0;">
-                        ${item.skor}
+                <div class="result-card-grid">
+                    <div class="card-title" style="font-size: 13px; margin: 0; line-height: 1.2;">${item.mapel}</div>
+                    <div class="skor-besar">${item.skor}</div>
+                    <div style="font-size: 10px; color: var(--text-muted); font-weight: 600;">
+                        Kls: ${item.tingkatan || '-'}
                     </div>
                 </div>
             `;
         });
     }
 
-    // GANTI PASSWORD API DENGAN ALERT MEWAH
     function simpanPassword() {
         const newPass = document.getElementById('new-password').value;
         const user = document.getElementById('set-username').value;
@@ -620,7 +631,6 @@
         });
     }
 
-    // LOGOUT DENGAN KONFIRMASI ALERT
     function logout() {
         Swal.fire({
             title: 'Keluar Aplikasi?', text: "Pastikan semua ujian telah diselesaikan.", icon: 'warning',
@@ -637,40 +647,31 @@
             }
         });
     }
-	
-	// FUNGSI JAM REAL-TIME & TAHUN OTOMATIS
+    
     function jalankanWaktu() {
         const elTanggal = document.getElementById('live-date');
         const elWaktu = document.getElementById('live-time');
         const elTahun = document.getElementById('tahun-aktif');
-        
         const namaHari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
         const namaBulan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
 
         setInterval(() => {
             const now = new Date();
-            
-            // Format Waktu (08:05:12)
             let jam = now.getHours().toString().padStart(2, '0');
             let menit = now.getMinutes().toString().padStart(2, '0');
             let detik = now.getSeconds().toString().padStart(2, '0');
             if (elWaktu) elWaktu.innerText = `${jam}:${menit}:${detik}`;
             
-            // Format Tanggal (Kamis, 5 Mar 2026)
             let hari = namaHari[now.getDay()];
             let tanggal = now.getDate();
             let bulan = namaBulan[now.getMonth()];
             let tahun = now.getFullYear();
             if (elTanggal) elTanggal.innerText = `${hari}, ${tanggal} ${bulan} ${tahun}`;
-            
-            // Set Tahun Footer Otomatis
             if (elTahun) elTahun.innerText = tahun;
         }, 1000);
     }
     
-    // Jalankan fungsi saat web dibuka
     jalankanWaktu();
-	
 </script>
 </body>
 </html>
