@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Portal Ujian Premium</title>
+    <title>Mappaguru CBT</title>
+
+	<link rel="icon" href="https://drive.google.com/thumbnail?id=1Z6g-sCdw-k7W8dnw12NeagPkroLlmk-L" type="image/png">
+    <link rel="shortcut icon" href="https://drive.google.com/thumbnail?id=1Z6g-sCdw-k7W8dnw12NeagPkroLlmk-L" type="image/png">
+	
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -17,15 +21,33 @@
             --card-bg: #ffffff; /* Putih bersih untuk area baca soal */
         }
         
-        /* --- JURUS ANTI TEKS TERPOTONG --- */
+        /* --- JURUS ANTI SELEKSI TEKS TOTAL --- */
         * { 
             box-sizing: border-box; margin: 0; padding: 0; 
             font-family: 'Poppins', sans-serif; 
             -webkit-tap-highlight-color: transparent; 
             word-wrap: break-word; 
+            
+            /* Paksa semua elemen tidak bisa diseleksi */
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
         }
-        body { background-color: var(--bg-light); color: var(--text-main); overflow: hidden; }
-        
+
+        body { 
+            background-color: var(--bg-light); 
+            color: var(--text-main); 
+            overflow: hidden; 
+        }
+
+        /* Pengecualian: Kolom input login harus tetap bisa diketik */
+        input, textarea, [contenteditable="true"] {
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }
         .card-title { line-height: 1.4; margin-bottom: 8px; font-size: 15px; font-weight: 700; color: var(--primary); }
         .card-desc { line-height: 1.5; font-size: 13px; color: var(--text-muted); }
 
@@ -35,6 +57,7 @@
             background: linear-gradient(135deg, #1e40af 0%, #334155 100%);
             position: relative;
         }
+		
         .login-box {
             position: relative; z-index: 2; width: 100%; max-width: 380px; padding: 40px 30px; border-radius: 24px;
             background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
@@ -131,14 +154,90 @@
         .form-input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 14px; margin-bottom: 15px; outline: none; }
         .form-input:focus { border-color: var(--primary); }
         .btn-save { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 10px rgba(30,64,175,0.2); }
+		
+		/* --- IKON INFO LOGIN MAPPAGURU CBT --- */
+        .info-icon-login {
+            position: absolute; top: 20px; right: 20px;
+            color: rgba(255,255,255,0.6); font-size: 24px;
+            cursor: pointer; z-index: 100; transition: 0.3s;
+            background: rgba(0,0,0,0.2); width: 45px; height: 45px;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+        }
+        .info-icon-login:hover { color: var(--accent); background: rgba(0,0,0,0.4); transform: scale(1.1); }
+        
+        /* CSS Tambahan untuk Merapikan Isi Panduan di Pop-up */
+        .swal-html-container ul { text-align: left; padding-left: 20px; margin-top: 10px; }
+        .swal-html-container li { margin-bottom: 8px; font-size: 13px; line-height: 1.4; color: #475569; }
+        .swal-title-panduan { color: var(--primary); font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; justify-content: center;}
+	
+        #offline-curtain {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.98); z-index: 999999; color: white;
+            flex-direction: column; justify-content: center; align-items: center; text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        #offline-curtain i { font-size: 60px; color: #ef4444; margin-bottom: 20px; animation: pulse 1.5s infinite; }
+        #offline-curtain h2 { font-size: 24px; font-weight: 700; margin-bottom: 10px; color: #fca5a5; }
+        #offline-curtain p { font-size: 13px; color: #cbd5e1; max-width: 80%; line-height: 1.5; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+		
+		/* Pengecualian: Kolom input tetap harus bisa diklik/fokus */
+        input, textarea, [contenteditable="true"] {
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }
+		
+		/* --- CSS WARNA MEWAH UNTUK JUDUL LOGIN --- */
+        
+        /* 1. Mappaguru CBT: Gradasi Biru Muda ke Putih */
+        .title-mappaguru {
+            font-weight: 800; /* Lebih tebal biar gagah */
+            font-size: 28px; /* Sedikit lebih besar */
+            margin-bottom: 0; /* Rapatkan dengan tulisan di bawahnya */
+            letter-spacing: 1px;
+            
+            /* Trik Warna Gradasi (Gradient Text) */
+            background: linear-gradient(135deg, #60a5fa 0%, #ffffff 100%);
+            -webkit-background-clip: text; /* Potong background mengikuti bentuk teks */
+            -webkit-text-fill-color: transparent; /* Buat warna teks asli transparan */
+            background-clip: text;
+            text-fill-color: transparent;
+            
+            /* Efek Bayangan Lembut biar Teks "Keluar" */
+            text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* 2. Ujian Online: Warna Kuning/Emas Mappaguru */
+        .exam-type {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent); /* Mengambil warna kuning dari --accent di atas */
+            margin-bottom: 5px; /* Jarak ke nama sekolah */
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        /* Rapiin jarak subtitle sekolah */
+        .login-box p.subtitle {
+            margin-top: 0;
+            margin-bottom: 30px;
+            opacity: 0.7; /* Sedikit redup biar fokus ke judul atas */
+        }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
+	<i class="fas fa-info-circle info-icon-login" onclick="bukaPanduanMappaguru()" title="Panduan Ujian"></i>
     <div class="login-box">
         <img src="https://lh3.googleusercontent.com/u/0/d/1Z6g-sCdw-k7W8dnw12NeagPkroLlmk-L" alt="Logo" class="logo-login">
-        <h2>Portal Ujian</h2>
+        
+        <h2 class="title-mappaguru">Mappaguru CBT</h2>
+        
+        <p class="exam-type">Ujian Online Berbasis Smartphone</p>
+        
         <p class="subtitle">UPT SPF SMP Negeri 16 Makassar</p>
         
         <div class="input-group">
@@ -269,6 +368,12 @@
         <div class="nav-item" onclick="navigasi('pengaturan', this)"><i class="fas fa-user-cog"></i>Profil</div>
     </div>
 </div>
+
+<div id="offline-curtain">
+        <i class="fas fa-wifi-slash"></i>
+        <h2>Koneksi Terputus!</h2>
+        <p>Internet Anda mati atau berada di Mode Pesawat. Layar ujian dibekukan. Silakan nyalakan kembali data/Wi-Fi Anda untuk melanjutkan.</p>
+    </div>
 
 <script>
     // MASUKKAN URL DEPLOYMENT BARU DI SINI
@@ -592,9 +697,11 @@
         return hari + ", " + tanggal + " " + bulan + " " + tahun;
     }
 
+    // RENDER UJIAN (BENTUK KOTAK 2 KOLOM + INFO TINGKATAN)
     function renderUjian(data) {
         const wadah = document.getElementById('list-ujian');
         wadah.innerHTML = "";
+        
         if(data.length === 0) { 
             wadah.classList.remove('grid-2-col'); 
             wadah.innerHTML = '<div class="card" style="width: 100%;"><p class="card-desc" style="text-align: center;">Belum ada ujian aktif untuk kelas Anda</p></div>'; 
@@ -603,11 +710,19 @@
         
         wadah.classList.add('grid-2-col');
         data.forEach(item => {
+            // Ambil data tingkatan siswa yang sedang login
+            let tingkatKelas = dataSiswaAktif.tingkatan || '-';
+
             wadah.innerHTML += `
                 <div class="exam-card-grid" onclick="konfirmasiUjian('${item.link}', '${item.mapel}')">
                     <div class="exam-icon-grid"><i class="fas fa-laptop-code"></i></div>
                     <div class="card-title" style="font-size: 13px; line-height: 1.2;">${item.mapel}</div>
-                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 5px;">
+                    
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 5px; font-weight: 600;">
+                        Tingkat: ${tingkatKelas}
+                    </div>
+                    
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">
                         <i class="far fa-clock"></i> ${item.durasi} Mnt
                     </div>
                     <div style="font-size: 10px; color: var(--accent); margin-top: 3px; font-weight: 600;">
@@ -704,6 +819,80 @@
             if (elTahun) elTahun.innerText = tahun;
         }, 1000);
     }
+	
+	// ==========================================
+    // FUNGSI PANDUAN UJIAN MAPPAGURU CBT
+    // ==========================================
+    function bukaPanduanMappaguru() {
+        Swal.fire({
+            title: '<div class="swal-title-panduan"><i class="fas fa-book-reader"></i> Panduan Ujian</div>',
+            icon: 'info',
+            html: `
+                <div style="text-align: left; padding: 10px 5px;">
+                    <h5 style="color: #334155; margin-bottom: 5px; font-size: 14px; font-weight: 700;">A. CARA UJIAN:</h5>
+                    <ul style="padding-left: 20px; font-size: 13px; line-height: 1.5;">
+                        <li>Masuk dengan <b>NISN</b> dan <b>Password</b>.</li>
+                        <li>Pilih menu <b>Ujian</b> di bawah.</li>
+                        <li>Klik ujian aktif, baca peringatan, lalu klik <b>Mulai</b>.</li>
+                        <li><b>WAJIB!</b> Klik <b>SUBMIT / KIRIM</b> sebelum waktu habis.</li>
+                        <li>Klik tombol <b>Kembali</b> di pojok atas untuk keluar.</li>
+                    </ul>
+
+                    <hr style="border: 0; border-top: 1px dashed #cbd5e1; margin: 15px 0;">
+
+                    <h5 style="color: #ef4444; margin-bottom: 5px; font-size: 14px; font-weight: 700;">B. ATURAN ANTI-CURANG (STRIKE 3):</h5>
+                    <ul style="border: 1px solid #fecaca; background: #fff1f1; padding: 10px 10px 10px 25px; border-radius: 12px; color: #ef4444; font-size: 13px; line-height: 1.5;">
+                        <li><i class="fas fa-ban"></i> <b>DILARANG</b> pindah tab/aplikasi atau menekan tombol Home.</li>
+                        <li><i class="fas fa-ban"></i> <b>DILARANG</b> memakai mode Layar Belah (Split Screen) atau Jendela Mengambang.</li>
+                        <li><i class="fas fa-times-circle"></i> <b>HUKUMAN:</b> 3 kali pelanggaran, ujian ditutup paksa dan akun <b>DIBLOKIR</b>!</li>
+                    </ul>
+                </div>
+            `,
+            confirmButtonText: 'Mengerti',
+            confirmButtonColor: '#1e40af',
+            allowOutsideClick: false,
+            width: '90%'
+        });
+    }
+	
+	// ==========================================
+    // 4. JURUS ANTI-COPAS, KEYBOARD & OFFLINE
+    // ==========================================
+    
+    // A. Anti Klik Kanan, Blok Teks, & Copy-Paste
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    document.addEventListener('cut', event => event.preventDefault());
+    document.addEventListener('paste', event => event.preventDefault());
+    document.addEventListener('copy', event => {
+        event.preventDefault();
+        // Tilang kalau nyoba copy pas lagi ujian
+        if(isUjianBerlangsung) tindakKecurangan("Mencoba Menyalin/Copy Teks Ujian");
+    });
+
+    // B. Anti Keyboard Shortcuts (Untuk pengguna Laptop/Tablet)
+    document.addEventListener('keydown', function(e) {
+        // Blokir F12 atau Ctrl+Shift+I (Cegah buka Inspect Element)
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+            e.preventDefault(); return false;
+        }
+        // Blokir Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+P, Ctrl+S
+        if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x' || e.key === 'p' || e.key === 's')) {
+            e.preventDefault(); 
+            if(isUjianBerlangsung) tindakKecurangan("Menggunakan Tombol Pintas Keyboard (Ctrl+C/V)");
+            return false;
+        }
+    });
+
+    // C. Sensor Internet Mati (Anti Mode Pesawat)
+    window.addEventListener('offline', function() {
+        if(isUjianBerlangsung) {
+            document.getElementById('offline-curtain').style.display = 'flex';
+        }
+    });
+
+    window.addEventListener('online', function() {
+        document.getElementById('offline-curtain').style.display = 'none';
+    });
     
     jalankanWaktu();
 </script>
