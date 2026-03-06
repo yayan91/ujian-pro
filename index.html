@@ -1445,7 +1445,7 @@
         });
     }
 
-    // --- RENDER LOGS (VERSI KOMPAK DITAMBAH KELAS & MAPEL) ---
+    // --- RENDER LOGS (KOMPAK, DITAMBAH KELAS & MAPEL) ---
     function renderLogKecurangan() {
         const wadah = document.getElementById('list-log-kecurangan');
         wadah.innerHTML = "";
@@ -1453,10 +1453,11 @@
         
         dataGlobalAdmin.logs.forEach(item => {
             let ket = item.keterangan ? item.keterangan : "-";
-            let rawTime = item.waktu; // Simpan waktu mentah untuk dikirim ke Backend
+            let barisLog = item.baris; // <-- Ambil nomer baris dari server
 
             wadah.innerHTML += `
                 <div style="background: white; border-radius: 8px; padding: 10px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 3px solid #ef4444;">
+                    
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <strong style="font-size: 12px; color: var(--primary); line-height: 1.2;">${item.nama}</strong>
                         <span style="font-size: 9px; color: #64748b; background: #f1f5f9; padding: 2px 5px; border-radius: 3px;">
@@ -1478,16 +1479,19 @@
                     </div>
                     
                     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 3px; border-top: 1px dashed #e2e8f0; padding-top: 6px;">
-                        <div style="font-size: 9px; color: #d97706; font-style: italic;">${ket}</div>
+                        <div style="font-size: 9px; color: #d97706; font-style: italic;">
+                            ${ket}
+                        </div>
                         <div style="display: flex; gap: 5px;">
                             <button onclick="aksiAdmin('block', '${item.username}')" title="Blokir Siswa" style="background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; width: 26px; height: 26px; border-radius: 4px; font-size: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center;">
                                 <i class="fas fa-lock"></i>
                             </button>
-                            <button onclick="hapusSatuLog('${rawTime}', '${item.username}')" title="Hapus Log" style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; width: 26px; height: 26px; border-radius: 4px; font-size: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center;">
+                            <button onclick="hapusSatuLog('${barisLog}', '${item.username}')" title="Hapus Log" style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; width: 26px; height: 26px; border-radius: 4px; font-size: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center;">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </div>
+
                 </div>
             `;
         });
@@ -1632,8 +1636,8 @@
         });
     }
 	
-	// --- FUNGSI HAPUS LOG SATUAN ---
-    function hapusSatuLog(timestampMentah, username) {
+	// --- FUNGSI HAPUS LOG SATUAN (BERBASIS ROW INDEX) ---
+    function hapusSatuLog(rowIndex, username) {
         Swal.fire({
             title: 'Hapus Log Ini?',
             text: "Data pelanggaran siswa ini akan dihapus dari server.",
@@ -1643,7 +1647,6 @@
             confirmButtonText: 'Ya, Hapus'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Tampilkan loading kecil di pojok kanan atas agar tidak mengganggu layar Admin
                 Swal.fire({
                     toast: true, position: 'top-end', icon: 'info',
                     title: 'Menghapus data...', showConfirmButton: false, timer: 10000
@@ -1651,7 +1654,7 @@
 
                 fetch(API_URL, {
                     method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"},
-                    body: JSON.stringify({ action: "delete_single_log", timestamp: timestampMentah, username: username })
+                    body: JSON.stringify({ action: "delete_single_log", row_index: rowIndex, username: username })
                 }).then(res => res.json()).then(res => {
                     if (res.status === "success") {
                         Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Log Terhapus!', showConfirmButton: false, timer: 1500 });
