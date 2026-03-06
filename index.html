@@ -574,6 +574,15 @@
         <p>Internet Anda mati atau berada di Mode Pesawat. Layar ujian dibekukan. Silakan nyalakan kembali data/Wi-Fi Anda untuk melanjutkan.</p>
     </div>
 
+<div id="cheat-curtain" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(220, 38, 38, 0.95); z-index: 999999; color: white; flex-direction: column; justify-content: center; align-items: center; text-align: center; backdrop-filter: blur(15px);">
+        <i class="fas fa-exclamation-triangle" style="font-size: 70px; color: #fef08a; margin-bottom: 20px; animation: pulse 1s infinite;"></i>
+        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 10px; color: white; text-shadow: 0 4px 10px rgba(0,0,0,0.3);">PELANGGARAN TERTANGKAP!</h2>
+        <p id="cheat-msg" style="font-size: 15px; color: #fecaca; max-width: 85%; line-height: 1.6; margin-bottom: 30px; font-weight: 600;"></p>
+        <button id="btn-cheat-resume" onclick="lanjutkanUjian()" style="background: #fef08a; color: #b91c1c; border: none; padding: 15px 30px; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.2);">
+            KEMBALI KE UJIAN
+        </button>
+    </div>
+
 <script>
     // MASUKKAN URL DEPLOYMENT BARU DI SINI
     const API_URL = "https://script.google.com/macros/s/AKfycbwpf1_l8OStnUGnb2Y-yMAw81s8otHQ3rsqA8zd3zPMZDJ1ZsqaBSxoXmj97bHat8ik/exec"; 
@@ -700,13 +709,10 @@
         mulaiHeartbeat();
     }
 
-    /// --- 1. FUNGSI TUTUP UJIAN (ANTI CELAH) ---
+    // --- FUNGSI TUTUP UJIAN (BERSIH & AMAN) ---
     function tutupUjian() {
-        // PENTING: JANGAN beri izinKeluarResmi = true di sini! 
-        // Biarkan sensor anti-curang terus mengintai mereka.
-
         Swal.fire({
-            target: document.getElementById('area-iframe'), // Tampil DI DALAM layar ujian
+            target: document.getElementById('area-iframe'), 
             title: 'Selesai Mengerjakan?',
             text: "Pastikan Anda SUDAH KLIK SUBMIT di dalam formulir sebelum keluar!",
             icon: 'warning',
@@ -718,51 +724,47 @@
             allowOutsideClick: false
         }).then((result) => {
             if (result.isConfirmed) {
-                // Jika ditekan "Ya", BARU kita izinkan keluar dan matikan sensor
-                keluarUjianPaksa();
+                keluarUjianPaksa(); // Eksekusi keluar jika klik YA
             }
-            // Jika ditekan "Batal", pop-up hilang dan mereka tetap di dalam ujian
         });
     }
 
-    // --- 2. FUNGSI KELUAR PAKSA ---
     function keluarUjianPaksa() {
-        // 1. Matikan semua sensor anti-curang
+        // Matikan semua sensor
         isUjianBerlangsung = false;
         izinKeluarResmi = true;
         lepasKunciLayar();
         
-        // 2. Hapus sisa pop-up SweetAlert
-        Swal.close(); 
-        
-        // 3. Cabut mode Layar Penuh
+        // Kembalikan tampilan ke normal
         if (document.fullscreenElement) {
-            if (document.exitFullscreen) { document.exitFullscreen(); }
-            else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
         }
 
-        // 4. Kembalikan tampilan ke menu Dashboard (diberi jeda 200ms agar mulus)
-        setTimeout(() => {
-            document.getElementById('header-area').style.display = 'block';
-            document.getElementById('bottom-navbar').style.display = 'flex';
-            document.getElementById('area-iframe').style.display = 'none';
-            document.getElementById('overlay-info').style.display = 'none';
-            document.getElementById('frame-ujian').src = "";
-            
-            // Otomatis pindah ke tab Dashboard
-            let tabHome = document.querySelector('.bottom-nav .nav-item');
-            if(tabHome) navigasi('dashboard', tabHome);
-        }, 200);
+        document.getElementById('area-iframe').style.display = 'none';
+        document.getElementById('overlay-info').style.display = 'none';
+        document.getElementById('frame-ujian').src = "";
+        
+        document.getElementById('header-area').style.display = 'block';
+        document.getElementById('bottom-navbar').style.display = 'flex';
+        
+        // Arahkan ke menu Dashboard
+        let tabHome = document.querySelector('.bottom-nav .nav-item');
+        if(tabHome) navigasi('dashboard', tabHome);
+        
+        // Tutup semua tirai peringatan (jika ada yang nyangkut)
+        document.getElementById('cheat-curtain').style.display = 'none';
     }
 
     // --- 3. FUNGSI TILANG KECURANGAN ---
     let isSedangDitilang = false; // Mencegah pop-up bertumpuk error
 
+    // --- SISTEM TILANG TIRAI MERAH (ANTI TEMBUS) ---
     function tindakKecurangan(jenis) {
-        if (isSedangDitilang) return; // Abaikan jika peringatan sedang tampil di layar
-        
+        if (!isUjianBerlangsung || izinKeluarResmi) return; // Abaikan jika sedang proses keluar resmi
+
         let sekarang = Date.now();
-        if (sekarang - waktuTilangTerakhir < 3000) return; 
+        if (sekarang - waktuTilangTerakhir < 3000) return; // Mencegah spam sensor (Jeda 3 detik)
         waktuTilangTerakhir = sekarang;
 
         jumlahPelanggaran++;
@@ -775,45 +777,48 @@
             dataSiswaAktif.status_ujian = "Terblokir"; 
         }
 
-        // Tembak laporan ke Admin diam-diam
+        // Tembak Laporan ke Server
         fetch(API_URL, {
             method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"},
             body: JSON.stringify({ action: "log_cheat", username: document.getElementById('set-username').value, nama: document.getElementById('set-nama').value, kelas: document.getElementById('set-kelas2').value, mapel: mapelAktif, jenis: jenisLaporan, keterangan: keteranganTilang })
         });
 
+        // Tampilkan Tirai Hukuman
         if (jumlahPelanggaran === 1 || jumlahPelanggaran === 2) {
-            isSedangDitilang = true; // Kunci layar agar siswa fokus ke pop-up tilang
-            // PENTING: Jangan keluarkan siswa dari Fullscreen!
+            izinKeluarResmi = true; // Kunci sensor sementara saat tirai terbuka
             
-            let judul = jumlahPelanggaran === 1 ? 'Peringatan 1/3' : 'Peringatan 2/3';
-            let teks = jumlahPelanggaran === 1 ? 'Anda terdeteksi ' + jenis + '. Aktivitas ini dicatat!' : 'JANGAN tinggalkan layar ujian! Sekali lagi keluar, ujian ditutup paksa.';
-            
-            Swal.fire({ 
-                target: document.getElementById('area-iframe'), // Tampil DI DALAM layar ujian
-                icon: 'warning', 
-                title: judul, 
-                text: teks,
-                allowOutsideClick: false,
-                confirmButtonText: '<i class="fas fa-expand"></i> Kembali Ujian',
-                confirmButtonColor: '#1e40af'
-            }).then(() => {
-                isSedangDitilang = false; // Buka kunci setelah tombol diklik
-                
-                // Jaga-jaga jika HP siswa memaksa keluar fullscreen, kita paksa masuk lagi
-                let area = document.getElementById('area-iframe');
-                if (!document.fullscreenElement) {
-                    if (area.requestFullscreen) { area.requestFullscreen(); }
-                    else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); }
-                }
-            });
+            document.getElementById('cheat-msg').innerText = `Peringatan ${jumlahPelanggaran}/3: Anda terdeteksi ${jenis}. Jangan tinggalkan layar ujian!`;
+            document.getElementById('btn-cheat-resume').style.display = 'block';
+            document.getElementById('cheat-curtain').style.display = 'flex';
+
+            // Keluar fullscreen paksa untuk menampilkan tirai
+            if (document.fullscreenElement) {
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            }
 
         } else if (jumlahPelanggaran >= 3) {
-            keluarUjianPaksa(); 
-            // Beri jeda sebentar sebelum memunculkan kartu merah di Dashboard
-            setTimeout(() => {
-                Swal.fire({ icon: 'error', title: 'UJIAN DIHENTIKAN!', text: 'Anda telah diblokir karena 3x pelanggaran. Segera lapor ke Pengawas!', confirmButtonText: 'Mengerti', allowOutsideClick: false });
-            }, 500);
+            // Blokir Total (Kartu Merah)
+            document.getElementById('cheat-msg').innerText = `PELANGGARAN BERAT (3/3): Ujian dihentikan paksa! Akun Anda telah diblokir. Lapor ke Pengawas segera.`;
+            document.getElementById('btn-cheat-resume').style.display = 'none'; // Sembunyikan tombol kembali
+            document.getElementById('cheat-curtain').style.display = 'flex';
+            
+            // Tunggu 3 detik, lalu lempar ke Dashboard
+            setTimeout(() => { keluarUjianPaksa(); }, 3000);
         }
+    }
+
+    // Fungsi klik tombol di Tirai Merah
+    function lanjutkanUjian() {
+        document.getElementById('cheat-curtain').style.display = 'none'; // Tutup tirai
+        
+        // PAKSA MASUK FULLSCREEN LAGI
+        let area = document.getElementById('area-iframe');
+        if (area.requestFullscreen) { area.requestFullscreen(); }
+        else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); }
+
+        // Buka sensor anti-curang kembali setelah 1 detik
+        setTimeout(() => { izinKeluarResmi = false; }, 1000);
     }
 	
     function pantauOverlayUjian() {
