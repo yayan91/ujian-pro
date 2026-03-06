@@ -226,6 +226,88 @@
             margin-bottom: 30px;
             opacity: 0.7; /* Sedikit redup biar fokus ke judul atas */
         }
+		
+		/* --- GAYA BARU HASIL UJIAN (ELEGAN & MEMANJANG) --- */
+        .result-list-item {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 18px 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+            border-left: 5px solid #10b981; /* Aksen Hijau Emerald di kiri */
+            transition: 0.2s ease;
+        }
+        .result-list-item:active { transform: scale(0.98); }
+        
+        .result-info { text-align: left; flex: 1; padding-right: 15px; }
+        .result-mapel { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 5px; line-height: 1.3; }
+        .result-detail { font-size: 11px; color: var(--text-muted); font-weight: 600; display: flex; gap: 8px; align-items: center; }
+        
+        /* Label Jenis Ujian Khusus Hasil */
+        .badge-jenis { background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 6px; font-size: 10px; border: 1px solid #e2e8f0; }
+        
+        .result-score-box {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            font-size: 26px;
+            font-weight: 800;
+            padding: 10px 15px;
+            border-radius: 14px;
+            min-width: 70px;
+            text-align: center;
+            box-shadow: inset 0 2px 4px rgba(16, 185, 129, 0.05);
+        }
+		
+		/* --- GAYA BANNER HEADER (MIRIP KARTU SIAP UJIAN) --- */
+        .header-banner {
+            padding: 15px 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .header-banner i {
+            font-size: 28px;
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.2);
+            width: 50px; height: 50px;
+            display: flex; justify-content: center; align-items: center;
+            border-radius: 14px;
+        }
+        .header-banner-text h4 {
+            margin: 0; font-size: 16px; font-weight: 700; letter-spacing: 0.5px;
+        }
+        .header-banner-text p {
+            margin: 0; font-size: 11px; opacity: 0.85; margin-top: 3px;
+        }
+		
+		/* ==========================================
+           CSS KHUSUS ADMIN CENTER MAPPAGURU
+           ========================================== */
+        #admin-app { display: none; height: 100vh; flex-direction: column; background: #f8fafc; }
+        .header-admin { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 25px 20px 30px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .header-admin h3 { font-size: 20px; font-weight: 700; color: var(--accent); margin-bottom: 2px; }
+        
+        .admin-stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+        .admin-stat-card { background: white; border-radius: 16px; padding: 15px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .admin-stat-num { font-size: 28px; font-weight: 800; margin: 5px 0; }
+        
+        .list-monitor-item { background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border-left: 4px solid #cbd5e1; }
+        .list-monitor-item.status-aman { border-left-color: #10b981; }
+        .list-monitor-item.status-bahaya { border-left-color: #ef4444; background: #fef2f2; }
+        .list-monitor-item.status-waspada { border-left-color: #f59e0b; }
+        
+        .btn-action-admin { width: 100%; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; margin-top: 10px; transition: 0.2s; }
+        .btn-unblock { background: #10b981; color: white; }
+        .btn-reset { background: #f59e0b; color: white; }
+        .btn-action-admin:active { transform: scale(0.96); }
+		
     </style>
 </head>
 <body>
@@ -292,23 +374,44 @@
         </div>
 
         <div id="page-pengumuman" class="page">
-            <h4 style="margin: 0 0 15px 5px; color: var(--text-main);">Info Sekolah</h4>
+            <div class="header-banner" style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); box-shadow: 0 10px 20px rgba(245, 158, 11, 0.2);">
+                <i class="fas fa-bullhorn"></i>
+                <div class="header-banner-text">
+                    <h4>Info Sekolah</h4>
+                    <p>Pengumuman penting untuk Anda</p>
+                </div>
+            </div>
+            
             <div id="list-pengumuman">
                 <div class="card"><p class="card-desc" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Memuat...</p></div>
             </div>
         </div>
 
         <div id="page-ujian" class="page">
-            <h4 style="margin: 0 0 15px 5px; color: var(--text-main);">Daftar Ujian Anda</h4>
+            <div class="header-banner" style="background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%); box-shadow: 0 10px 20px rgba(30, 64, 175, 0.2);">
+                <i class="fas fa-laptop-code" style="color: var(--accent);"></i>
+                <div class="header-banner-text">
+                    <h4>Daftar Ujian Anda</h4>
+                    <p>Pilih mata pelajaran yang aktif</p>
+                </div>
+            </div>
+            
             <div id="list-ujian" class="grid-2-col">
                 <div class="card" style="grid-column: span 2;"><p class="card-desc" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Memuat jadwal...</p></div>
             </div>
         </div>
 
         <div id="page-hasil" class="page">
-            <h4 style="margin: 0 0 15px 5px; color: var(--text-main);">Rekap Nilai</h4>
-            <div id="list-hasil" class="grid-2-col">
-                <div class="card" style="grid-column: span 2;"><p class="card-desc" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Memuat nilai...</p></div>
+            <div class="header-banner" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">
+                <i class="fas fa-award"></i>
+                <div class="header-banner-text">
+                    <h4>Rekap Nilai</h4>
+                    <p>Hasil ujian yang telah Anda kerjakan</p>
+                </div>
+            </div>
+            
+            <div id="list-hasil">
+                <div class="card"><p class="card-desc" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Memuat nilai...</p></div>
             </div>
         </div>
 
@@ -367,6 +470,97 @@
         <div class="nav-item" onclick="navigasi('ujian', this)"><i class="fas fa-file-alt"></i>Ujian</div>
         <div class="nav-item" onclick="navigasi('hasil', this)"><i class="fas fa-chart-pie"></i>Hasil</div>
         <div class="nav-item" onclick="navigasi('pengaturan', this)"><i class="fas fa-user-cog"></i>Profil</div>
+    </div>
+</div>
+
+<div id="admin-app">
+    <div class="header-admin">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h3>Admin Center 🛡️</h3>
+                <p style="font-size: 13px; opacity: 0.8;">Bapak/Ibu <span id="admin-name-display">Pengawas</span></p>
+            </div>
+            <button onclick="logoutAdmin()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; width: 38px; height: 38px; border-radius: 12px; cursor: pointer; display: flex; justify-content: center; align-items: center;">
+                <i class="fas fa-power-off"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <div id="page-admin-dashboard" class="page active">
+            <h4 style="margin: 0 0 15px 5px; color: var(--text-main);">Statistik Ujian</h4>
+            <div class="admin-stat-grid">
+                <div class="admin-stat-card">
+                    <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Siswa Aktif</div>
+                    <div class="admin-stat-num" style="color: #1e40af;" id="stat-aktif">0</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Terblokir</div>
+                    <div class="admin-stat-num" style="color: #ef4444;" id="stat-blokir">0</div>
+                </div>
+            </div>
+            <button class="btn-action-admin" style="background: var(--primary); color: white; margin-bottom: 20px;" onclick="tarikDataAdmin()">
+                <i class="fas fa-sync-alt"></i> Segarkan Data Sekarang
+            </button>
+        </div>
+
+        <div id="page-admin-monitor" class="page">
+            <h4 style="margin: 0 0 15px 5px; color: var(--text-main);">Radar Live Status</h4>
+            <div id="list-live-monitor">
+                <p style="text-align: center; font-size: 13px; color: var(--text-muted);">Klik "Segarkan Data" di Dashboard.</p>
+            </div>
+        </div>
+
+        <div id="page-admin-log" class="page">
+            <h4 style="margin: 0 0 15px 5px; color: var(--text-main);">Log Pelanggaran</h4>
+            <div id="list-log-kecurangan">
+                <p style="text-align: center; font-size: 13px; color: var(--text-muted);">Belum ada data ditarik.</p>
+            </div>
+        </div>
+
+       <div id="page-admin-kendali" class="page">
+            <h4 style="margin: 0 0 15px 5px; color: var(--text-main);">Tindakan Darurat</h4>
+            
+            <div class="card" style="border-left: 4px solid #10b981; padding: 15px;">
+                <div class="card-title"><i class="fas fa-unlock-alt"></i> Buka Blokir Siswa</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px;">
+                    <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Data per halaman:</span>
+                    <select id="admin-pagination" onchange="renderDaftarBlokir()" style="padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 11px; outline: none; background: #f8fafc;">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="9999">Semua</option>
+                    </select>
+                </div>
+                <div id="list-admin-blocked" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                    <p style="text-align: center; font-size: 12px; color: #94a3b8;">Tidak ada siswa terblokir.</p>
+                </div>
+            </div>
+
+            <div class="card" style="border-left: 4px solid #f59e0b; padding: 15px; position: relative;">
+                <div class="card-title"><i class="fas fa-mobile-alt"></i> Reset Login HP</div>
+                <p class="card-desc" style="margin-bottom: 10px;">Ketik Nama siswa untuk mencari, lalu pilih dari daftar.</p>
+                
+                <div style="position: relative;">
+                    <input type="text" id="input-search-nama" class="form-input" placeholder="🔍 Ketik nama siswa..." autocomplete="off" onkeyup="cariNamaSiswa()" style="margin-bottom: 5px;">
+                    <div id="box-autocomplete" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; max-height: 180px; overflow-y: auto; background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 100;"></div>
+                </div>
+                
+                <input type="hidden" id="target-reset-username"> <div id="info-siswa-terpilih" style="display: none; background: #f8fafc; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 12px; border: 1px solid #e2e8f0;">
+                    Siswa terpilih: <br><strong id="lbl-nama-reset" style="color: var(--primary);"></strong> (<span id="lbl-kls-reset"></span>)
+                </div>
+
+                <button class="btn-action-admin btn-reset" onclick="aksiAdmin('reset_device')"><i class="fas fa-sync"></i> Reset Device ID Siswa</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav" id="bottom-navbar-admin">
+        <div class="nav-item active" onclick="navigasiAdmin('admin-dashboard', this)"><i class="fas fa-chart-bar"></i>Statistik</div>
+       <div class="nav-item" onclick="navigasiAdmin('admin-monitor', this)"><i class="fas fa-broadcast-tower"></i>Radar</div>
+        <div class="nav-item" onclick="navigasiAdmin('admin-log', this)"><i class="fas fa-clipboard-list"></i>Logs</div>
+        <div class="nav-item" onclick="navigasiAdmin('admin-kendali', this)"><i class="fas fa-tools"></i>Kendali</div>
     </div>
 </div>
 
@@ -497,6 +691,7 @@
 
         pantauOverlayUjian();
 		mulaiHeartbeat();
+		kunciLayarNyala();
     }
 
     function tutupUjian() {
@@ -530,6 +725,8 @@
     function keluarUjianPaksa() {
         isUjianBerlangsung = false;
         izinKeluarResmi = true;
+		
+		lepasKunciLayar();
         
         if (document.fullscreenElement) {
             if (document.exitFullscreen) { document.exitFullscreen(); }
@@ -635,8 +832,13 @@
             body: JSON.stringify({ action: "login", username: user, password: pass, device_id: deviceId })
         }).then(res => res.json()).then(res => {
             if (res.status === "success") {
-                dataSiswaAktif = res.data;
-                masukAplikasi(user);
+                // --- PERCABANGAN PINTU RAHASIA ---
+                if (res.data.role === "admin") {
+                    masukAdmin(res.data); // Buka ruang Admin
+                } else {
+                    dataSiswaAktif = res.data;
+                    masukAplikasi(user);  // Buka ruang Siswa
+                }
             } else {
                 msg.innerText = res.message;
                 btn.innerHTML = 'Masuk Sekarang'; btn.disabled = false;
@@ -780,6 +982,10 @@
                 <div class="exam-card-grid" onclick="konfirmasiUjian('${item.link}', '${item.mapel}')">
                     <div class="exam-icon-grid"><i class="fas fa-laptop-code"></i></div>
                     <div class="card-title" style="font-size: 13px; line-height: 1.2;">${item.mapel}</div>
+					
+					<div style="margin-top: 5px;">
+                        <span class="badge badge-biasa" style="position: static; font-size: 9px;">${item.jenis_ujian}</span>
+                    </div>
                     
                     <div style="font-size: 10px; color: var(--text-muted); margin-top: 5px; font-weight: 600;">
                         Tingkat: ${tingkatKelas}
@@ -799,20 +1005,33 @@
     function renderHasil(data) {
         const wadah = document.getElementById('list-hasil');
         wadah.innerHTML = "";
+        
         if(data.length === 0) { 
+            // Pastikan class grid dihapus jika tidak ada data
             wadah.classList.remove('grid-2-col'); 
             wadah.innerHTML = '<div class="card" style="width: 100%;"><p class="card-desc" style="text-align: center;">Belum ada nilai yang keluar</p></div>'; 
             return; 
         }
         
-        wadah.classList.add('grid-2-col');
+        // PENTING: Kita hapus class 'grid-2-col' agar tampilannya memanjang ke bawah (satu kolom)
+        wadah.classList.remove('grid-2-col');
+        
         data.forEach(item => {
+            // Ambil jenis ujian dari backend (atau tampilkan 'Ujian' jika kosong)
+            let jenis = item.jenis_ujian || "Ujian";
+            let tingkat = item.tingkatan || "-";
+
             wadah.innerHTML += `
-                <div class="result-card-grid">
-                    <div class="card-title" style="font-size: 13px; margin: 0; line-height: 1.2;">${item.mapel}</div>
-                    <div class="skor-besar">${item.skor}</div>
-                    <div style="font-size: 10px; color: var(--text-muted); font-weight: 600;">
-                        Kls: ${item.tingkatan || '-'}
+                <div class="result-list-item">
+                    <div class="result-info">
+                        <div class="result-mapel">${item.mapel}</div>
+                        <div class="result-detail">
+                            <span class="badge-jenis"><i class="fas fa-tags"></i> ${jenis}</span>
+                            <span><i class="fas fa-layer-group"></i> Kls: ${tingkat}</span>
+                        </div>
+                    </div>
+                    <div class="result-score-box">
+                        ${item.skor}
                     </div>
                 </div>
             `;
@@ -881,6 +1100,229 @@
             if (elTanggal) elTanggal.innerText = `${hari}, ${tanggal} ${bulan} ${tahun}`;
             if (elTahun) elTahun.innerText = tahun;
         }, 1000);
+    }
+	
+	// ==========================================
+    // FUNGSI KHUSUS ADMIN CENTER
+    // ==========================================
+    let adminInterval;
+
+    function masukAdmin(dataAdmin) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-app').style.display = 'none'; // Pastikan app siswa tertutup
+        document.getElementById('admin-app').style.display = 'flex'; // Buka app admin
+        
+        document.getElementById('admin-name-display').innerText = dataAdmin.nama;
+        
+        Swal.fire({ icon: 'success', title: 'Akses Admin Dibuka', text: 'Selamat bertugas, ' + dataAdmin.nama, timer: 1500, showConfirmButton: false });
+        
+        // Peringatan: Fungsi tarikDataAdmin() akan kita buat di tahap selanjutnya (Backend)
+    }
+
+    function navigasiAdmin(pageId, element) {
+        document.querySelectorAll('#admin-app .page').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('#bottom-navbar-admin .nav-item').forEach(el => el.classList.remove('active'));
+        document.getElementById('page-' + pageId).classList.add('active');
+        element.classList.add('active');
+    }
+
+    function logoutAdmin() {
+        Swal.fire({
+            title: 'Tutup Admin Center?', icon: 'warning',
+            showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Ya, Keluar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if(adminInterval) clearInterval(adminInterval);
+                document.getElementById('admin-app').style.display = 'none';
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('password').value = "";
+                document.getElementById('btn-login-text').innerText = "Masuk Sekarang";
+                document.getElementById('btn-login-text').disabled = false;
+            }
+        });
+    }
+    
+    // ==========================================
+    // LOGIKA ADMIN CENTER (TARIK DATA & AKSI)
+    // ==========================================
+    let dataGlobalAdmin = { live: [], logs: [], blocked: [], students: [] };
+
+    function tarikDataAdmin() {
+        let btnSync = document.querySelector('.btn-action-admin');
+        if(btnSync) { btnSync.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menarik Data...'; btnSync.disabled = true; }
+
+        fetch(API_URL, {
+            method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"},
+            body: JSON.stringify({ action: "admin_get_data" })
+        }).then(res => res.json()).then(res => {
+            if(res.status === "success") {
+                dataGlobalAdmin = res.data;
+                
+                // Update Dashboard
+                document.getElementById('stat-aktif').innerText = res.data.stats.aktif;
+                document.getElementById('stat-blokir').innerText = res.data.stats.blokir;
+                
+                renderRadarLive();
+                renderLogKecurangan();
+                renderDaftarBlokir();
+            }
+            if(btnSync) { btnSync.innerHTML = '<i class="fas fa-sync-alt"></i> Segarkan Data Sekarang'; btnSync.disabled = false; }
+        });
+    }
+
+    // --- RENDER RADAR ---
+    function renderRadarLive() {
+        const wadah = document.getElementById('list-live-monitor');
+        wadah.innerHTML = "";
+        if (dataGlobalAdmin.live.length === 0) { wadah.innerHTML = "<p style='text-align:center; font-size:12px; color:gray;'>Radar kosong. Belum ada aktivitas.</p>"; return; }
+        
+        dataGlobalAdmin.live.forEach(item => {
+            let statusClass = "status-aman";
+            let icon = '<i class="fas fa-check-circle" style="color: #10b981; font-size: 20px;"></i>';
+            
+            if (item.status.includes("Layar Tidak Penuh")) { statusClass = "status-waspada"; icon = '<i class="fas fa-exclamation-triangle" style="color: #f59e0b; font-size: 20px;"></i>'; }
+            else if (item.status.includes("Iframe Dihapus") || item.status.includes("Curang")) { statusClass = "status-bahaya"; icon = '<i class="fas fa-times-circle" style="color: #ef4444; font-size: 20px;"></i>'; }
+
+            wadah.innerHTML += `
+                <div class="list-monitor-item ${statusClass}">
+                    <div>
+                        <div style="font-weight: 700; font-size: 13px; color: var(--primary);">${item.nama}</div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Kls: ${item.kelas} | <span style="font-weight:600;">${item.status}</span></div>
+                    </div>
+                    <div>${icon}</div>
+                </div>
+            `;
+        });
+    }
+
+    // --- RENDER LOGS ---
+    function renderLogKecurangan() {
+        const wadah = document.getElementById('list-log-kecurangan');
+        wadah.innerHTML = "";
+        if (dataGlobalAdmin.logs.length === 0) { wadah.innerHTML = "<p style='text-align:center; font-size:12px; color:gray;'>Tidak ada pelanggaran tercatat.</p>"; return; }
+        
+        dataGlobalAdmin.logs.forEach(item => {
+            wadah.innerHTML += `
+                <div class="list-monitor-item status-bahaya" style="flex-direction: column; align-items: flex-start; gap: 5px;">
+                    <div style="display: flex; justify-content: space-between; width: 100%;">
+                        <span style="font-weight: 700; font-size: 13px; color: var(--primary);">${item.nama}</span>
+                        <span style="font-size: 10px; color: #ef4444; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">${item.waktu.split(' ')[1]}</span>
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-muted);">
+                        <i class="fas fa-ban" style="color: #ef4444; margin-right: 4px;"></i> ${item.jenis}
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // --- RENDER DAFTAR BLOKIR (PAGINATION) ---
+    function renderDaftarBlokir() {
+        const wadah = document.getElementById('list-admin-blocked');
+        const limit = parseInt(document.getElementById('admin-pagination').value);
+        wadah.innerHTML = "";
+        
+        let dataBlokir = dataGlobalAdmin.blocked;
+        if (dataBlokir.length === 0) { wadah.innerHTML = "<p style='text-align:center; font-size:12px; color:gray;'>Tidak ada siswa terblokir.</p>"; return; }
+        
+        // Potong array sesuai pagination
+        let dataDitampilkan = dataBlokir.slice(0, limit);
+        
+        dataDitampilkan.forEach(item => {
+            wadah.innerHTML += `
+                <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 10px 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 700; font-size: 12px; color: #b91c1c;">${item.nama}</div>
+                        <div style="font-size: 10px; color: #ef4444; margin-top: 2px;">NISN: ${item.username} | ${item.kelas}</div>
+                    </div>
+                    <button onclick="aksiAdmin('unblock', '${item.username}')" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;">Buka</button>
+                </div>
+            `;
+        });
+    }
+
+    // --- AUTOCOMPLETE PENCARIAN NAMA ---
+    function cariNamaSiswa() {
+        const input = document.getElementById('input-search-nama').value.toLowerCase();
+        const box = document.getElementById('box-autocomplete');
+        box.innerHTML = "";
+        
+        if (input.length < 2) { box.style.display = 'none'; return; } // Ketik minimal 2 huruf
+        
+        // Saring data siswa yang mengandung huruf tersebut
+        let hasil = dataGlobalAdmin.students.filter(s => s.nama.toLowerCase().includes(input)).slice(0, 10); // Tampilkan maks 10
+        
+        if (hasil.length > 0) {
+            box.style.display = 'block';
+            hasil.forEach(item => {
+                box.innerHTML += `
+                    <div style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; cursor: pointer; font-size: 12px;" onclick="pilihSiswaReset('${item.username}', '${item.nama}', '${item.kelas}')">
+                        <strong style="color: var(--primary);">${item.nama}</strong> <br>
+                        <span style="font-size: 10px; color: var(--text-muted);">Kelas: ${item.kelas} | NISN: ${item.username}</span>
+                    </div>
+                `;
+            });
+        } else {
+            box.style.display = 'block';
+            box.innerHTML = `<div style="padding: 10px 15px; font-size: 12px; color: gray;">Nama tidak ditemukan...</div>`;
+        }
+    }
+
+    function pilihSiswaReset(nisn, nama, kelas) {
+        document.getElementById('input-search-nama').value = "";
+        document.getElementById('box-autocomplete').style.display = 'none';
+        
+        document.getElementById('target-reset-username').value = nisn;
+        document.getElementById('lbl-nama-reset').innerText = nama;
+        document.getElementById('lbl-kls-reset').innerText = kelas;
+        document.getElementById('info-siswa-terpilih').style.display = 'block';
+    }
+
+    // --- AKSI KIRIM KE BACKEND (UNBLOCK / RESET) ---
+    function aksiAdmin(jenisAksi, targetUsername = null) {
+        let usernameDieksekusi = targetUsername;
+        let pesan = "";
+        
+        if (jenisAksi === 'reset_device') {
+            usernameDieksekusi = document.getElementById('target-reset-username').value;
+            if(!usernameDieksekusi) { Swal.fire('Pilih Siswa', 'Silakan cari dan pilih nama siswa terlebih dahulu.', 'warning'); return; }
+            pesan = "Reset Device ID untuk siswa ini?";
+        } else {
+            pesan = "Buka akses ujian untuk siswa ini?";
+        }
+
+        Swal.fire({ title: 'Konfirmasi Aksi', text: pesan, icon: 'question', showCancelButton: true, confirmButtonColor: '#1e40af' }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                
+                fetch(API_URL, {
+                    method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"},
+                    body: JSON.stringify({ action: "admin_action", jenis_aksi: jenisAksi, target_user: usernameDieksekusi })
+                }).then(res => res.json()).then(res => {
+                    if (res.status === "success") {
+                        Swal.fire('Berhasil!', 'Tindakan berhasil dilakukan.', 'success');
+                        document.getElementById('info-siswa-terpilih').style.display = 'none';
+                        document.getElementById('target-reset-username').value = "";
+                        tarikDataAdmin(); // Segarkan data otomatis
+                    } else {
+                        Swal.fire('Gagal', res.message, 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    // PENTING: Tambahkan auto-refresh 30 detik saat masuk admin
+    function masukAdmin(dataAdmin) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-app').style.display = 'none'; 
+        document.getElementById('admin-app').style.display = 'flex'; 
+        document.getElementById('admin-name-display').innerText = dataAdmin.nama;
+        
+        Swal.fire({ icon: 'success', title: 'Akses Admin Dibuka', text: 'Selamat bertugas, ' + dataAdmin.nama, timer: 1500, showConfirmButton: false });
+        
+        tarikDataAdmin(); // Tarik data pertama kali
+        adminInterval = setInterval(tarikDataAdmin, 30000); // Auto-refresh tiap 30 detik
     }
 	
 	// ==========================================
@@ -979,14 +1421,17 @@
                 }
 
                 // Tembakkan sinyal ke Backend diam-diam
+                // Tembakkan sinyal ke Backend diam-diam
                 fetch(API_URL, {
                     method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"},
                     body: JSON.stringify({ 
                         action: "live_status", 
                         username: document.getElementById('set-username').value,
+                        nama: document.getElementById('set-nama').value,     // <-- TAMBAHAN INI
+                        kelas: document.getElementById('set-kelas2').value,  // <-- TAMBAHAN INI
                         status: statusLaporan
                     })
-                }).catch(err => console.log("Heartbeat tertunda (koneksi lemah)"));
+                }).catch(err => console.log("Heartbeat tertunda"));
             }
         }, 120000); // 120 detik
     }
@@ -995,6 +1440,29 @@
     // Cari fungsi bukaUjian() lalu tambahkan baris ini di bagian paling bawahnya:
     // mulaiHeartbeat();
     
+	// --- TAMBAHAN 4: JURUS ANTI LAYAR MATI (WAKE LOCK) ---
+    let wakeLock = null;
+
+    async function kunciLayarNyala() {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
+                console.log('Layar dikunci agar tidak mati.');
+            }
+        } catch (err) {
+            console.log('Gagal mengunci layar: ', err.message);
+        }
+    }
+
+    function lepasKunciLayar() {
+        if (wakeLock !== null) {
+            wakeLock.release().then(() => {
+                wakeLock = null;
+                console.log('Kunci layar dilepas.');
+            });
+        }
+    }
+	
     jalankanWaktu();
 </script>
 </body>
