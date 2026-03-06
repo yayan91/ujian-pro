@@ -1,52 +1,20 @@
-const CACHE_NAME = 'mappaguru-cbt-v2'; // Versi Cache (Ubah angka jika ada update besar)
-
-// Daftar file yang WAJIB ada di GitHub dengan nama yang SAMA PERSIS hurufnya
-const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
-  './1234.png',
-  './909090.png'
-];
-
-// PROSES INSTALL & CACHING
-self.addEventListener('install', event => {
-  self.skipWaiting(); // Paksa agen rahasia baru langsung aktif bekerja
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Membuka cache Mappaguru...');
-        return cache.addAll(urlsToCache);
-      })
-      .catch(err => console.log('Ada file yang gagal di-cache (cek nama file!):', err))
-  );
-});
-
-// PROSES AKTIVASI & BERSIH-BERSIH CACHE LAMA
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.filter(cacheName => cacheName !== CACHE_NAME)
-          .map(cacheName => caches.delete(cacheName))
-      );
-    })
-  );
-});
-
-// PROSES PENGAMBILAN DATA (FETCH)
-self.addEventListener('fetch', event => {
-  // Biarkan jalur ke Google Apps Script tetap jalan pakai internet
-  if (event.request.url.includes('script.google.com')) {
-      return; 
-  }
-
-  // Cek apakah file ada di memori HP, kalau ada tampilkan, kalau tidak ambil dari internet
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        return response || fetch(event.request);
-      })
-  );
-});
-
+{
+  "name": "Mappaguru Exam",
+  "short_name": "MappaguruExam",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#8b5cf6",
+  "icons": [
+    {
+      "src": "https://drive.google.com/thumbnail?id=1Z6g-sCdw-k7W8dnw12NeagPkroLlmk-L",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://drive.google.com/thumbnail?id=1Z6g-sCdw-k7W8dnw12NeagPkroLlmk-L",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
