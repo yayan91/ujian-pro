@@ -1,41 +1,20 @@
-const CACHE_NAME = 'mappaguru-cbt-v1';
-
-// Daftar file UI yang akan disimpan di memori HP siswa
-const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
-  './mp.png',
-  './login.png'
-];
-
-// Proses Install: Agen rahasia mendownload tampilan aplikasi
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Membuka cache CBT...');
-        return cache.addAll(urlsToCache);
-      })
-  );
-});
-
-// Proses Fetch: Saat siswa buka aplikasi, cek apakah ada internet atau tidak
-self.addEventListener('fetch', event => {
-  // Biarkan request ke Google Apps Script (API) tetap jalan pakai internet
-  if (event.request.url.includes('script.google.com')) {
-      return; 
-  }
-
-  // Untuk file tampilan (HTML/CSS/Gambar), ambil dari memori HP jika internet putus
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response; // Tampilkan dari memori HP
-        }
-        return fetch(event.request); // Ambil dari internet (GitHub)
-      })
-  );
-});
-
+{
+  "name": "Mappaguru Exam",
+  "short_name": "MappaguruExam",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#8b5cf6",
+  "icons": [
+    {
+      "src": "https://drive.google.com/thumbnail?id=1ojC1nhaQTcvl7ud6dAGR-s302IsnyPBg",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://drive.google.com/thumbnail?id=13dJAR70BWIHLxi3skLTNSEY8661BLOhY",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
