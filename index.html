@@ -134,13 +134,14 @@
         /* Iframe Ujian */
         .iframe-container { width: 100%; height: calc(100vh - 120px); border-radius: 15px; overflow: hidden; background: white; margin-top: 50px; }
         iframe { width: 100%; height: 100%; border: none; }
-        .btn-kembali { position: fixed; top: 10px; left: 10px; background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; z-index: 999; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; }
+        .btn-kembali { position: fixed; top: 10px; left: 10px; background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; z-index: 99; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; }
         
         .info-ujian-overlay {
             position: fixed; top: 15px; right: 20px;
             background: rgba(0,0,0,0.7); color: white; padding: 8px 15px;
             border-radius: 20px; font-size: 12px; font-weight: 600;
-            z-index: 9999; display: flex; gap: 15px; backdrop-filter: blur(5px);
+            z-index: 99; /* <-- Diubah jadi 99 agar tidak menghalangi pop-up */
+            display: flex; gap: 15px; backdrop-filter: blur(5px);
             box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);
         }
         
@@ -404,23 +405,77 @@
     let waktuTilangTerakhir = 0; 
     let izinKeluarResmi = false; 
     
+    // --- TAMBAHAN 1: RUMUS HITUNG JARAK GPS ---
+    function hitungJarakGPS(lat1, lon1, lat2, lon2) {
+        const R = 6371e3; // Radius bumi dalam meter
+        const p1 = lat1 * Math.PI/180;
+        const p2 = lat2 * Math.PI/180;
+        const dp = (lat2-lat1) * Math.PI/180;
+        const dl = (lon2-lon1) * Math.PI/180;
+
+        const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c; // Hasil dalam satuan meter
+    }
+
+    // --- FUNGSI KONFIRMASI UJIAN (DENGAN GPS DINAMIS) ---
     function konfirmasiUjian(urlForm, mapel) {
         if(dataSiswaAktif.status_ujian === "Terblokir") {
-            Swal.fire({ icon: 'error', title: 'Akses Diblokir!', text: 'Akses Anda dikunci karena terdeteksi melakukan kecurangan. Silakan lapor ke Pengawas!' });
+            Swal.fire({ icon: 'error', title: 'Akses Diblokir!', text: 'Akses Anda dikunci karena kecurangan. Lapor ke Pengawas!' });
             return;
         }
-        Swal.fire({
-            title: 'Mulai Ujian ' + mapel + '?',
-            text: "Sistem Anti-Curang akan diaktifkan. Pastikan baterai dan koneksi internet Anda aman sebelum menekan tombol mulai!",
-            icon: 'info',
-            showCancelButton: true,
-            confirmButtonColor: '#1e40af', 
-            cancelButtonColor: '#9ca3af',
-            confirmButtonText: '<i class="fas fa-play"></i> Ya, Mulai Ujian!',
-            cancelButtonText: 'Nanti Dulu'
-        }).then((result) => {
-            if (result.isConfirmed) { bukaUjian(urlForm, mapel); }
-        });
+
+        // 1. Tarik Data Lokasi dari Backend (yang disimpan di dataSiswaAktif)
+        let latSekolah = -5.0968;  // Default (Jaga-jaga kalau kosong)
+        let lonSekolah = 119.5350; // Default
+        let batasRadius = 150;     // Default 150 Meter
+        
+        // Timpa dengan data dari Spreadsheet jika tersedia
+        if (dataSiswaAktif.lokasi && dataSiswaAktif.lokasi.lat) {
+            latSekolah = parseFloat(dataSiswaAktif.lokasi.lat);
+            lonSekolah = parseFloat(dataSiswaAktif.lokasi.lon);
+            batasRadius = parseFloat(dataSiswaAktif.lokasi.radius) || 150;
+        }
+
+        Swal.fire({ title: 'Mengecek Lokasi GPS...', text: 'Pastikan GPS HP menyala.', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+
+        // 2. Minta Izin Lokasi ke HP Siswa
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    let latSiswa = position.coords.latitude;
+                    let lonSiswa = position.coords.longitude;
+                    
+                    // Hitung Jarak Pakai Rumus Haversine (Fungsi yang kita buat tadi)
+                    let jarak = hitungJarakGPS(latSekolah, lonSekolah, latSiswa, lonSiswa);
+
+                    // 3. Evaluasi Jarak
+                    if (jarak <= batasRadius) {
+                        Swal.fire({
+                            title: 'Mulai Ujian ' + mapel + '?',
+                            text: "Sistem Anti-Curang Aktif. Jarak Anda: " + Math.round(jarak) + "m dari pusat sekolah.",
+                            icon: 'info', showCancelButton: true, confirmButtonColor: '#1e40af', cancelButtonColor: '#9ca3af',
+                            confirmButtonText: '<i class="fas fa-play"></i> Ya, Mulai Ujian!'
+                        }).then((result) => {
+                            if (result.isConfirmed) { bukaUjian(urlForm, mapel); }
+                        });
+                    } else {
+                        // Jika Bolos/Di Luar Area
+                        Swal.fire({ 
+                            icon: 'error', 
+                            title: 'Di Luar Area Ujian!', 
+                            text: 'Jarak Anda ' + Math.round(jarak) + ' meter. Ujian hanya bisa diakses dalam radius ' + batasRadius + 'm dari sekolah.' 
+                        });
+                    }
+                },
+                function(error) {
+                    Swal.fire({ icon: 'error', title: 'GPS Ditolak/Mati!', text: 'Mohon izinkan akses lokasi (GPS) pada browser/HP Anda untuk memulai ujian.' });
+                },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 } // Timeout 15 detik untuk akurasi tinggi
+            );
+        } else {
+            Swal.fire({ icon: 'error', title: 'Tidak Mendukung', text: 'Perangkat Anda tidak mendukung fitur GPS.' });
+        }
     }
 
     function bukaUjian(urlForm, mapel) {
@@ -441,31 +496,35 @@
         else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); }
 
         pantauOverlayUjian();
+		mulaiHeartbeat();
     }
 
     function tutupUjian() {
+        // 1. Beri tahu sistem bahwa ini adalah "niat keluar yang sah"
         izinKeluarResmi = true; 
-        
-        if (document.fullscreenElement) {
-            if (document.exitFullscreen) { document.exitFullscreen(); }
-            else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
-        }
 
-        setTimeout(() => {
-            Swal.fire({
-                title: 'Selesai Mengerjakan?', text: "Pastikan Anda SUDAH KLIK SUBMIT di dalam formulir sebelum keluar!", icon: 'warning',
-                showCancelButton: true, confirmButtonColor: '#10b981', cancelButtonColor: '#ef4444', confirmButtonText: 'Ya, Selesai', cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) { 
-                    keluarUjianPaksa(); 
-                } else {
-                    izinKeluarResmi = false; 
-                    let area = document.getElementById('area-iframe');
-                    if (area.requestFullscreen) { area.requestFullscreen(); }
-                    else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); }
-                }
-            });
-        }, 500);
+        // 2. Munculkan pop-up DI DALAM area fullscreen (Ini kuncinya!)
+        Swal.fire({
+            target: document.getElementById('area-iframe'), // <-- KODE SAKTI
+            title: 'Selesai Mengerjakan?', 
+            text: "Pastikan Anda SUDAH KLIK SUBMIT di dalam formulir sebelum keluar!", 
+            icon: 'warning',
+            showCancelButton: true, 
+            confirmButtonColor: '#10b981', 
+            cancelButtonColor: '#ef4444', 
+            confirmButtonText: 'Ya, Selesai', 
+            cancelButtonText: 'Batal',
+            allowOutsideClick: false 
+        }).then((result) => {
+            if (result.isConfirmed) { 
+                keluarUjianPaksa(); 
+            } else {
+                // 3. Jika batal keluar, cabut lagi izin sah-nya
+                izinKeluarResmi = false; 
+                
+                // Layar tetap aman terkunci fullscreen
+            }
+        });
     }
 
     function keluarUjianPaksa() {
@@ -649,6 +708,10 @@
         }).then(res => res.json()).then(res => {
             if(res.status === "success") {
                 dataSiswaAktif.status_ujian = res.data.status_ujian; 
+                
+                // 👇 TAMBAHKAN BARIS INI AGAR LOKASI DARI SPREADSHEET TERSIMPAN 👇
+                dataSiswaAktif.lokasi = res.data.lokasi; 
+                
                 renderPengumuman(res.data.pengumuman);
                 renderUjian(res.data.ujian);
                 renderHasil(res.data.hasil);
@@ -893,6 +956,44 @@
     window.addEventListener('online', function() {
         document.getElementById('offline-curtain').style.display = 'none';
     });
+	
+	// --- TAMBAHAN 3: LIVE STATUS HEARTBEAT ---
+    let heartbeatInterval;
+
+    function mulaiHeartbeat() {
+        // Hentikan heartbeat lama jika ada, untuk mencegah dobel
+        if(heartbeatInterval) clearInterval(heartbeatInterval); 
+        
+        // Kirim status setiap 2 menit (120.000 milidetik) -> Aman untuk 1000 siswa
+        heartbeatInterval = setInterval(() => {
+            if (isUjianBerlangsung) {
+                // Pengecekan Kunci Iframe
+                let iframeAda = document.getElementById('frame-ujian') ? true : false;
+                let statusLaporan = "Aktif";
+
+                if (!iframeAda) {
+                    statusLaporan = "Iframe Dihapus!";
+                    tindakKecurangan("Menghapus Iframe Ujian");
+                } else if (!document.fullscreenElement && !izinKeluarResmi) {
+                    statusLaporan = "Layar Tidak Penuh";
+                }
+
+                // Tembakkan sinyal ke Backend diam-diam
+                fetch(API_URL, {
+                    method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"},
+                    body: JSON.stringify({ 
+                        action: "live_status", 
+                        username: document.getElementById('set-username').value,
+                        status: statusLaporan
+                    })
+                }).catch(err => console.log("Heartbeat tertunda (koneksi lemah)"));
+            }
+        }, 120000); // 120 detik
+    }
+
+    // PENTING: Tambahkan pemanggil fungsi ini di dalam fungsi bukaUjian() yang lama
+    // Cari fungsi bukaUjian() lalu tambahkan baris ini di bagian paling bawahnya:
+    // mulaiHeartbeat();
     
     jalankanWaktu();
 </script>
