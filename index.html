@@ -652,7 +652,6 @@
                             confirmButtonText: '<i class="fas fa-play"></i> Ya, Mulai Ujian!'
                         }).then((result) => {
                             if (result.isConfirmed) { 
-                                kunciLayarNyala(); // <-- Panggil di sini saat tombol diklik!
                                 bukaUjian(urlForm, mapel); 
                             }
                         });
@@ -689,11 +688,12 @@
         document.getElementById('overlay-info').style.display = 'flex';
         document.getElementById('frame-ujian').src = urlForm;
 
-        if (area.requestFullscreen) { area.requestFullscreen(); }
-        else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); }
+        // Minta Fullscreen dulu
+        if (area.requestFullscreen) { area.requestFullscreen().then(kunciLayarNyala); }
+        else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); kunciLayarNyala(); }
 
         pantauOverlayUjian();
-		mulaiHeartbeat();
+        mulaiHeartbeat();
     }
 
     function tutupUjian() {
@@ -776,42 +776,42 @@
         let keteranganTilang = "Peringatan " + jumlahPelanggaran + "/3";
         let jenisLaporan = jenis;
 
-        if (jumlahPelanggaran === 1) {
-            Swal.fire({ 
-                icon: 'warning', title: 'Peringatan 1/3', text: 'Anda terdeteksi ' + jenis + '. Aktivitas ini dicatat!',
-                allowOutsideClick: false // Paksa klik tombol
-            }).then(() => {
-                // Kembalikan ke Fullscreen setelah ditutup
-                let area = document.getElementById('area-iframe');
-                if (area.requestFullscreen) { area.requestFullscreen(); }
-                else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); }
-            });
-        } else if (jumlahPelanggaran === 2) {
-            Swal.fire({ 
-                icon: 'warning', title: 'Peringatan 2/3', text: 'JANGAN tinggalkan layar ujian! Sekali lagi keluar, ujian ditutup paksa.',
-                allowOutsideClick: false
-            }).then(() => {
-                // Kembalikan ke Fullscreen setelah ditutup
-                let area = document.getElementById('area-iframe');
-                if (area.requestFullscreen) { area.requestFullscreen(); }
-                else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); }
-            });
-        } else if (jumlahPelanggaran >= 3) {
-            keluarUjianPaksa(); 
-            setTimeout(() => {
-                Swal.fire({ icon: 'error', title: 'UJIAN DIHENTIKAN!', text: 'Anda telah diblokir karena 3x pelanggaran. Segera lapor ke Pengawas!', confirmButtonText: 'Mengerti', allowOutsideClick: false });
-            }, 500);
+        if (jumlahPelanggaran >= 3) {
+            jenisLaporan = "Blokir Ujian";
+            keteranganTilang = "Kartu Merah (Terkunci)";
+            dataSiswaAktif.status_ujian = "Terblokir"; 
         }
 
+        // Kirim ke Backend
         fetch(API_URL, {
             method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"},
             body: JSON.stringify({ action: "log_cheat", username: document.getElementById('set-username').value, nama: document.getElementById('set-nama').value, kelas: document.getElementById('set-kelas2').value, mapel: mapelAktif, jenis: jenisLaporan, keterangan: keteranganTilang })
         });
 
-        if (jumlahPelanggaran === 1) {
-            Swal.fire({ icon: 'warning', title: 'Peringatan 1/3', text: 'Anda terdeteksi ' + jenis + '. Aktivitas ini dicatat di server!' });
-        } else if (jumlahPelanggaran === 2) {
-            Swal.fire({ icon: 'warning', title: 'Peringatan 2/3', text: 'JANGAN tinggalkan layar ujian! Sekali lagi keluar, ujian ditutup paksa.' });
+        // Tampilkan Peringatan
+        if (jumlahPelanggaran === 1 || jumlahPelanggaran === 2) {
+            let judul = jumlahPelanggaran === 1 ? 'Peringatan 1/3' : 'Peringatan 2/3';
+            let teks = jumlahPelanggaran === 1 ? 'Anda terdeteksi ' + jenis + '. Aktivitas ini dicatat!' : 'JANGAN tinggalkan layar ujian! Sekali lagi keluar, ujian ditutup paksa.';
+            
+            // Beri tahu sistem bahwa ini pop-up resmi agar tidak kena tilang dobel
+            izinKeluarResmi = true;
+
+            Swal.fire({ 
+                icon: 'warning', 
+                title: judul, 
+                text: teks,
+                allowOutsideClick: false,
+                confirmButtonText: 'Kembali Ujian',
+                preConfirm: () => {
+                    // Paksa masuk fullscreen SAAT tombol diklik
+                    let area = document.getElementById('area-iframe');
+                    if (area.requestFullscreen) { area.requestFullscreen(); }
+                    else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); }
+                }
+            }).then(() => {
+                izinKeluarResmi = false; // Cabut izin setelah masuk fullscreen
+            });
+
         } else if (jumlahPelanggaran >= 3) {
             keluarUjianPaksa(); 
             setTimeout(() => {
@@ -1467,22 +1467,20 @@
     let wakeLock = null;
 
     async function kunciLayarNyala() {
-        try {
-            if ('wakeLock' in navigator) {
+        if ('wakeLock' in navigator) {
+            try {
                 wakeLock = await navigator.wakeLock.request('screen');
                 console.log('Layar dikunci agar tidak mati.');
+                
+                // Tambahkan event listener jika layar sempat mati lalu nyala lagi
+                document.addEventListener('visibilitychange', async () => {
+                    if (wakeLock !== null && document.visibilityState === 'visible' && isUjianBerlangsung) {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                    }
+                });
+            } catch (err) {
+                console.log('Gagal mengunci layar: ', err.message);
             }
-        } catch (err) {
-            console.log('Gagal mengunci layar: ', err.message);
-        }
-    }
-
-    function lepasKunciLayar() {
-        if (wakeLock !== null) {
-            wakeLock.release().then(() => {
-                wakeLock = null;
-                console.log('Kunci layar dilepas.');
-            });
         }
     }
 	
