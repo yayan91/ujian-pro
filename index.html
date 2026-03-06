@@ -1564,26 +1564,6 @@
 	}
 	
     jalankanWaktu();
-
-    // ==========================================
-    // MENDAFTARKAN AGEN RAHASIA (SERVICE WORKER PWA)
-    // ==========================================
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-            navigator.serviceWorker.register('./sw.js')
-            .then(function(registration) {
-                console.log('Satpam PWA Mappaguru Siap! Scope:', registration.scope);
-            }).catch(function(err) {
-                console.log('PWA Gagal didaftarkan:', err);
-            });
-        });
-    }
 </script>
 </body>
 </html>
-
-
-
-
-
-
