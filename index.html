@@ -541,11 +541,16 @@
         </div>
 
         <div id="page-admin-monitor" class="page">
-            <h4 style="margin: 0 0 15px 5px; color: var(--text-main);">Radar Live Status</h4>
-            <div id="list-live-monitor">
-                <p style="text-align: center; font-size: 13px; color: var(--text-muted);">Klik "Segarkan Data" di Dashboard.</p>
-            </div>
-        </div>
+            <h4 style="margin: 0 0 10px 5px; color: var(--text-main);">Radar Live Status</h4>
+            
+            <button onclick="hapusSemuaLive()" style="width:100%; background: #f59e0b; color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 600; margin-bottom: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2);">
+                <i class="fas fa-broom"></i> Bersihkan Radar (Sesi Baru)
+            </button>
+
+            <div id="list-live-monitor">
+                <p style="text-align: center; font-size: 13px; color: var(--text-muted);">Klik "Segarkan Data" di Dashboard.</p>
+            </div>
+        </div>
 
         <div id="page-admin-log" class="page">
             <h4 style="margin: 0 0 10px 5px; color: var(--text-main);">Log Pelanggaran</h4>
@@ -1418,39 +1423,38 @@
         });
     }
 
-    // --- RENDER LOGS ---
+    // --- RENDER LOGS (VERSI KOMPAK + TOMBOL HAPUS) ---
     function renderLogKecurangan() {
         const wadah = document.getElementById('list-log-kecurangan');
         wadah.innerHTML = "";
         if (dataGlobalAdmin.logs.length === 0) { wadah.innerHTML = "<p style='text-align:center; font-size:12px; color:gray;'>Tidak ada pelanggaran tercatat.</p>"; return; }
         
         dataGlobalAdmin.logs.forEach(item => {
-            // Jika keterangan kosong, beri nilai default
-            let ket = item.keterangan ? item.keterangan : "Tidak ada detail";
-            let kelas = item.kelas ? item.kelas : "-";
+            let ket = item.keterangan ? item.keterangan : "-";
+            let rawTime = item.waktu; // Simpan waktu mentah untuk dikirim ke Backend
 
             wadah.innerHTML += `
-                <div class="list-monitor-item status-bahaya" style="flex-direction: column; align-items: flex-start; gap: 5px;">
-                    <div style="display: flex; justify-content: space-between; width: 100%;">
-                        <span style="font-weight: 700; font-size: 13px; color: var(--primary);">${item.nama}</span>
-                        <span style="font-size: 10px; color: #ef4444; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">${formatWaktuLengkap(item.waktu)}</span>
-                    </div>
-                    <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">
-                        Kelas: ${kelas} | Mapel: ${item.mapel}
-                    </div>
-                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
-                        <i class="fas fa-ban" style="color: #ef4444; margin-right: 4px;"></i> ${item.jenis}
-                    </div>
-                                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 5px; gap: 10px;">
-                        <div style="font-size: 10px; color: #f59e0b; background: #fef3c7; padding: 4px 8px; border-radius: 4px; flex: 1;">
-                            <em>${ket}</em>
-                        </div>
-                        <button onclick="aksiAdmin('block', '${item.username}')" style="background: #ef4444; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 600; cursor: pointer; white-space: nowrap;">
+                <div style="background: white; border-radius: 8px; padding: 10px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 3px solid #ef4444;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong style="font-size: 12px; color: var(--primary);">${item.nama}</strong>
+                        <span style="font-size: 9px; color: #64748b;">${formatWaktuLengkap(item.waktu)}</span>
+                    </div>
+                    
+                    <div style="font-size: 10px; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;">
+                        <span><i class="fas fa-ban text-red-500"></i> ${item.jenis}</span>
+                        <span style="background: #fef3c7; color: #d97706; padding: 2px 6px; border-radius: 4px;">${ket}</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; border-top: 1px dashed #e2e8f0; padding-top: 6px;">
+                        <button onclick="aksiAdmin('block', '${item.username}')" style="background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; padding: 4px 12px; border-radius: 4px; font-size: 9px; font-weight: 600; cursor: pointer;">
                             <i class="fas fa-lock"></i> Blokir
                         </button>
+                        <button onclick="hapusSatuLog('${rawTime}', '${item.username}')" style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; padding: 4px 12px; border-radius: 4px; font-size: 9px; font-weight: 600; cursor: pointer;">
+                            <i class="fas fa-trash"></i> Hapus
+                        </button>
                     </div>
-                </div>
-            `;
+                </div>
+            `;
         });
     }
 
@@ -1589,6 +1593,79 @@
                         Swal.fire('Gagal', res.message, 'error');
                     }
                 });
+            }
+        });
+    }
+	
+	// --- FUNGSI HAPUS LOG SATUAN ---
+    function hapusSatuLog(timestampMentah, username) {
+        Swal.fire({
+            title: 'Hapus Log Ini?',
+            text: "Data pelanggaran siswa ini akan dihapus dari server.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Ya, Hapus'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Tampilkan loading kecil di pojok kanan atas agar tidak mengganggu layar Admin
+                Swal.fire({
+                    toast: true, position: 'top-end', icon: 'info',
+                    title: 'Menghapus data...', showConfirmButton: false, timer: 10000
+                });
+
+                fetch(API_URL, {
+                    method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"},
+                    body: JSON.stringify({ action: "delete_single_log", timestamp: timestampMentah, username: username })
+                }).then(res => res.json()).then(res => {
+                    if (res.status === "success") {
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Log Terhapus!', showConfirmButton: false, timer: 1500 });
+                        tarikDataAdmin(); // Auto-refresh tampilan radar
+                    } else {
+                        Swal.fire('Gagal', res.message, 'error');
+                    }
+                }).catch(() => Swal.fire('Error', 'Koneksi terputus.', 'error'));
+            }
+        });
+    }
+	
+	// --- FUNGSI BERSIHKAN RADAR LIVE (DENGAN PENGAMAN) ---
+    function hapusSemuaLive() {
+        if (dataGlobalAdmin.live.length === 0) {
+            Swal.fire('Info', 'Radar sudah dalam keadaan kosong.', 'info');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Bersihkan Radar?',
+            html: 'Semua data pantauan di layar ini akan dihapus.<br>Sangat disarankan ditekan saat <b>Pergantian Sesi Ujian</b>.<br><br>Ketik <b>BERSIH</b> untuk konfirmasi:',
+            input: 'text',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f59e0b',
+            confirmButtonText: 'Ya, Bersihkan!',
+            cancelButtonText: 'Batal',
+            preConfirm: (inputValue) => {
+                if (inputValue !== 'BERSIH') {
+                    Swal.showValidationMessage('Kata kunci salah! Ketik huruf besar BERSIH.');
+                    return false;
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'Menyapu Radar...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                
+                fetch(API_URL, {
+                    method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"},
+                    body: JSON.stringify({ action: "clear_live_status" })
+                }).then(res => res.json()).then(res => {
+                    if (res.status === "success") {
+                        Swal.fire('Selesai!', 'Radar berhasil dibersihkan untuk sesi baru.', 'success');
+                        tarikDataAdmin(); // Muat ulang layar Admin agar radar langsung kosong
+                    } else {
+                        Swal.fire('Gagal', res.message, 'error');
+                    }
+                }).catch(() => Swal.fire('Error', 'Koneksi terputus.', 'error'));
             }
         });
     }
