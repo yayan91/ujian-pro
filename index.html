@@ -577,7 +577,10 @@
 <script>
     // MASUKKAN URL DEPLOYMENT BARU DI SINI
     const API_URL = "https://script.google.com/macros/s/AKfycbwpf1_l8OStnUGnb2Y-yMAw81s8otHQ3rsqA8zd3zPMZDJ1ZsqaBSxoXmj97bHat8ik/exec"; 
-
+	
+	// --- DETEKSI PERANGKAT APPLE (iOS) ---
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+	
     let deviceId = localStorage.getItem("ujian_device_id");
     if (!deviceId) { deviceId = 'DEV-' + Math.random().toString(36).substr(2, 9); localStorage.setItem("ujian_device_id", deviceId); }
     let sessionChecker;
@@ -672,18 +675,30 @@
     });
 
     document.addEventListener("fullscreenchange", function() {
+        if (isIOS) return; // Abaikan sensor ini khusus pengguna iPhone/iPad
+
         if (isUjianBerlangsung && !prosesKeluar && !document.fullscreenElement) {
             tindakKecurangan("Keluar dari Layar Penuh");
         }
     });
 
+    let timerTilangBlur; // Variabel penyimpan hitungan mundur
+
     window.addEventListener("blur", function() {
         if (isUjianBerlangsung && !prosesKeluar) {
-            setTimeout(() => {
+            // Beri waktu 3 detik (3000 ms) sebelum peluit ditiup
+            timerTilangBlur = setTimeout(() => {
                 if (document.hidden || !document.hasFocus()) {
-                    tindakKecurangan("Membuka Aplikasi Lain (Split Screen / Pop-up)");
+                    tindakKecurangan("Membuka Aplikasi Lain (Meninggalkan Ujian)");
                 }
-            }, 500); 
+            }, 3000); 
+        }
+    });
+
+    // Jika siswa kembali fokus sebelum 3 detik, batalkan tilang!
+    window.addEventListener("focus", function() {
+        if (timerTilangBlur) {
+            clearTimeout(timerTilangBlur);
         }
     });
 
@@ -704,8 +719,13 @@
         document.getElementById('overlay-info').style.display = 'flex';
         document.getElementById('frame-ujian').src = urlForm;
 
-        let p = area.requestFullscreen ? area.requestFullscreen() : (area.webkitRequestFullscreen ? area.webkitRequestFullscreen() : null);
-        if(p) { p.then(kunciLayarNyala).catch(e => console.log(e)); }
+        // Jika BUKAN iOS, paksa Fullscreen. Jika iOS, biarkan saja.
+        if (!isIOS) {
+            let p = area.requestFullscreen ? area.requestFullscreen() : (area.webkitRequestFullscreen ? area.webkitRequestFullscreen() : null);
+            if(p) { p.then(kunciLayarNyala).catch(e => console.log(e)); }
+        } else {
+            kunciLayarNyala(); // Tetap nyalakan penahan layar mati untuk iOS
+        }
 
         pantauOverlayUjian();
         mulaiHeartbeat();
@@ -996,6 +1016,27 @@
         let tahun = d.getFullYear();
         return hari + ", " + tanggal + " " + bulan + " " + tahun;
     }
+	
+	function formatWaktuLengkap(waktuGoogle) {
+        let d = new Date(waktuGoogle);
+        // Kalau formatnya tidak dikenali, kembalikan teks aslinya
+        if(isNaN(d)) return waktuGoogle; 
+        
+        const namaHari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+        const namaBulan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+        
+        let hari = namaHari[d.getDay()];
+        let tanggal = d.getDate();
+        let bulan = namaBulan[d.getMonth()];
+        let tahun = d.getFullYear();
+        
+        // Ambil jam dan menit lokal perangkat (ditambah '0' di depan jika 1 digit)
+        let jam = d.getHours().toString().padStart(2, '0');
+        let menit = d.getMinutes().toString().padStart(2, '0');
+        
+        // Hasil akhir: "Jumat, 6 Mar 2026 • 13:45"
+        return `${hari}, ${tanggal} ${bulan} ${tahun} &bull; ${jam}:${menit}`;
+    }
 
     // RENDER UJIAN (BENTUK KOTAK 2 KOLOM + INFO TINGKATAN)
     function renderUjian(data) {
@@ -1245,7 +1286,7 @@
                 <div class="list-monitor-item status-bahaya" style="flex-direction: column; align-items: flex-start; gap: 5px;">
                     <div style="display: flex; justify-content: space-between; width: 100%;">
                         <span style="font-weight: 700; font-size: 13px; color: var(--primary);">${item.nama}</span>
-                        <span style="font-size: 10px; color: #ef4444; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">${item.waktu.split(' ')[1] || item.waktu}</span>
+                        <span style="font-size: 10px; color: #ef4444; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">${formatWaktuLengkap(item.waktu)}</span>
                     </div>
                     <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">
                         Kelas: ${kelas} | Mapel: ${item.mapel}
@@ -1461,9 +1502,9 @@
                 if (!iframeAda) {
                     statusLaporan = "Iframe Dihapus!";
                     tindakKecurangan("Menghapus Iframe Ujian");
-                } else if (!document.fullscreenElement && !prosesKeluar) {
-					statusLaporan = "Layar Tidak Penuh";
-				}
+                } else if (!isIOS && !document.fullscreenElement && !prosesKeluar) {
+                    statusLaporan = "Layar Tidak Penuh";
+                }
 
                 // Tembakkan sinyal ke Backend diam-diam
                 // Tembakkan sinyal ke Backend diam-diam
