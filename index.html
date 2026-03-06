@@ -337,6 +337,88 @@
         #area-iframe .swal2-container { position: absolute !important; }
         body.swal2-shown { overflow: hidden !important; }
 		
+		/* ==========================================
+           JURUS GLOBAL: DESAIN MEWAH SWEETALERT2 (POP-UP)
+           ========================================== */
+        
+        /* 1. KOTAK POP-UP UTAMA */
+        div:where(.swal2-container) div:where(.swal2-popup) {
+            border-radius: 24px !important;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15) !important;
+            padding: 1.5em 1.5em 2em !important;
+            background: #ffffff !important;
+            border: 1px solid #f1f5f9 !important;
+            font-family: 'Poppins', sans-serif !important;
+        }
+
+        /* 2. JUDUL POP-UP */
+        div:where(.swal2-container) h2:where(.swal2-title) {
+            color: var(--primary) !important;
+            font-weight: 700 !important;
+            font-size: 22px !important;
+            padding-top: 10px !important;
+            letter-spacing: 0.5px !important;
+        }
+
+        /* 3. TEKS ISI / DESKRIPSI */
+        div:where(.swal2-container) div:where(.swal2-html-container) {
+            color: #64748b !important;
+            font-size: 13px !important;
+            line-height: 1.6 !important;
+            margin-top: 10px !important;
+            font-weight: 500 !important;
+        }
+
+        /* 4. JARAK ANTAR TOMBOL */
+        div:where(.swal2-container) .swal2-actions {
+            margin-top: 25px !important;
+            gap: 12px !important;
+            width: 100% !important;
+        }
+
+        /* 5. TOMBOL UTAMA (KONFIRMASI / OKE) - GRADASI MEWAH */
+        div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
+            background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%) !important;
+            border-radius: 14px !important;
+            padding: 14px 28px !important;
+            font-weight: 700 !important;
+            font-size: 14px !important;
+            color: white !important;
+            box-shadow: 0 8px 20px rgba(30, 64, 175, 0.25) !important;
+            border: none !important;
+            transition: all 0.3s ease !important;
+            flex: 1 !important; /* Membuat tombol menyesuaikan lebar */
+        }
+        div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm:active {
+            transform: scale(0.95) !important;
+            box-shadow: 0 4px 10px rgba(30, 64, 175, 0.2) !important;
+        }
+
+        /* 6. TOMBOL BATAL (CANCEL) - GAYA KALEM */
+        div:where(.swal2-container) button:where(.swal2-styled).swal2-cancel {
+            background: #f1f5f9 !important;
+            color: #ef4444 !important;
+            border-radius: 14px !important;
+            padding: 14px 28px !important;
+            font-weight: 700 !important;
+            font-size: 14px !important;
+            box-shadow: none !important;
+            border: 1px solid #e2e8f0 !important;
+            transition: all 0.3s ease !important;
+            flex: 1 !important;
+        }
+        div:where(.swal2-container) button:where(.swal2-styled).swal2-cancel:active {
+            transform: scale(0.95) !important;
+            background: #e2e8f0 !important;
+        }
+
+        /* 7. MEMPERCANTIK IKON (CHECK, WARNING, ERROR) */
+        .swal2-icon {
+            margin-top: 15px !important;
+            border-width: 3px !important; /* Lingkaran ikon agak ditepiskan biar elegan */
+            transform: scale(0.9); /* Sedikit dikecilkan agar proporsional */
+        }
+		
     </style>
 </head>
 <body>
@@ -476,7 +558,7 @@
         </div>
         
         <div class="footer-app">
-            <div class="footer-title">UJIAN PROJECT</div>
+            <div class="footer-title">EXAM PROJECT</div>
             <p>Muhammad Hasratul - Developer & Founder</p>
             <p>© <span id="tahun-aktif">2026</span> Mappaguru Online</p>
         </div>
@@ -1916,16 +1998,36 @@
         }
     });
 
-    // C. Sensor Internet Mati (Anti Mode Pesawat)
-    window.addEventListener('offline', function() {
-        if(isUjianBerlangsung) {
-            document.getElementById('offline-curtain').style.display = 'flex';
-        }
-    });
+    // C. Sensor Internet Mati (Anti Mode Pesawat & Buka Buku)
+    let waktuMatiInternet = 0;
+    const BATAS_OFFLINE_MS = 60000; // 60.000 milidetik = 60 detik (Bisa Anda ubah nanti)
 
-    window.addEventListener('online', function() {
-        document.getElementById('offline-curtain').style.display = 'none';
-    });
+    window.addEventListener('offline', function() {
+        if(isUjianBerlangsung && !prosesKeluar) {
+            document.getElementById('offline-curtain').style.display = 'flex';
+            waktuMatiInternet = Date.now(); // Catat detik pertama internet mati!
+        }
+    });
+
+    window.addEventListener('online', function() {
+        if(isUjianBerlangsung && !prosesKeluar) {
+            let waktuNyalaLagi = Date.now();
+            let lamaMati = waktuNyalaLagi - waktuMatiInternet;
+
+            // Jika matinya melebih batas 60 detik, tembak tilang ke server!
+            if (lamaMati > BATAS_OFFLINE_MS && waktuMatiInternet > 0) {
+                document.getElementById('offline-curtain').style.display = 'none'; // Buka tirai sebentar
+                tindakKecurangan("Sengaja Mematikan Internet / Offline Lebih dari 60 Detik");
+                waktuMatiInternet = 0; // Reset
+            } else {
+                // Jika putus sebentar karena sinyal jelek, maafkan dan buka tirai
+                document.getElementById('offline-curtain').style.display = 'none';
+                waktuMatiInternet = 0; // Reset
+            }
+        } else {
+            document.getElementById('offline-curtain').style.display = 'none';
+        }
+    });
 	
 	// --- TAMBAHAN 3: LIVE STATUS HEARTBEAT ---
     function mulaiHeartbeat() {
