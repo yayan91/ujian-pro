@@ -697,12 +697,10 @@
     }
 
     function tutupUjian() {
-        // 1. Beri tahu sistem bahwa ini adalah "niat keluar yang sah"
         izinKeluarResmi = true; 
 
-        // 2. Munculkan pop-up DI DALAM area fullscreen (Ini kuncinya!)
         Swal.fire({
-            target: document.getElementById('area-iframe'), // <-- KODE SAKTI
+            target: document.getElementById('area-iframe'), 
             title: 'Selesai Mengerjakan?', 
             text: "Pastikan Anda SUDAH KLIK SUBMIT di dalam formulir sebelum keluar!", 
             icon: 'warning',
@@ -714,32 +712,39 @@
             allowOutsideClick: false 
         }).then((result) => {
             if (result.isConfirmed) { 
-                keluarUjianPaksa(); 
+                // Beri jeda 300ms agar animasi pop-up bersih, baru keluar
+                setTimeout(() => {
+                    keluarUjianPaksa(); 
+                }, 300);
             } else {
-                // 3. Jika batal keluar, cabut lagi izin sah-nya
                 izinKeluarResmi = false; 
-                
-                // Layar tetap aman terkunci fullscreen
             }
         });
     }
-
     function keluarUjianPaksa() {
         isUjianBerlangsung = false;
         izinKeluarResmi = true;
-		
-		lepasKunciLayar();
+        lepasKunciLayar();
         
-        if (document.fullscreenElement) {
-            if (document.exitFullscreen) { document.exitFullscreen(); }
-            else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
-        }
+        // Tutup paksa jika ada sisa pop-up yang nyangkut
+        Swal.close(); 
+        
+        // Jeda waktu untuk memberikan ruang browser bernapas
+        setTimeout(() => {
+            if (document.fullscreenElement) {
+                if (document.exitFullscreen) { document.exitFullscreen(); }
+                else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+            }
 
-        document.getElementById('header-area').style.display = 'block';
-        document.getElementById('bottom-navbar').style.display = 'flex';
-        document.getElementById('area-iframe').style.display = 'none';
-        document.getElementById('overlay-info').style.display = 'none';
-        document.getElementById('frame-ujian').src = "";
+            document.getElementById('header-area').style.display = 'block';
+            document.getElementById('bottom-navbar').style.display = 'flex';
+            document.getElementById('area-iframe').style.display = 'none';
+            document.getElementById('overlay-info').style.display = 'none';
+            document.getElementById('frame-ujian').src = "";
+            
+            // Paksa tampilan pindah kembali ke ikon Dashboard (Menu pertama)
+            navigasi('dashboard', document.getElementById('bottom-navbar').children[0]);
+        }, 300);
     }
 
     document.addEventListener("visibilitychange", function() {
@@ -767,7 +772,11 @@
         }
     });
 
+    let isSedangDitilang = false; // Mencegah pop-up bertumpuk
+
     function tindakKecurangan(jenis) {
+        if (isSedangDitilang) return; // Abaikan jika pop-up tilang sedang terbuka
+        
         let sekarang = Date.now();
         if (sekarang - waktuTilangTerakhir < 3000) return; 
         waktuTilangTerakhir = sekarang;
@@ -782,41 +791,44 @@
             dataSiswaAktif.status_ujian = "Terblokir"; 
         }
 
-        // Kirim ke Backend
+        // Tembak laporan ke server diam-diam
         fetch(API_URL, {
             method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"},
             body: JSON.stringify({ action: "log_cheat", username: document.getElementById('set-username').value, nama: document.getElementById('set-nama').value, kelas: document.getElementById('set-kelas2').value, mapel: mapelAktif, jenis: jenisLaporan, keterangan: keteranganTilang })
         });
 
-        // Tampilkan Peringatan
         if (jumlahPelanggaran === 1 || jumlahPelanggaran === 2) {
+            isSedangDitilang = true; // Kunci sistem tilang
+            izinKeluarResmi = true;  // Halalkan sementara agar tidak tilang dobel
+            
             let judul = jumlahPelanggaran === 1 ? 'Peringatan 1/3' : 'Peringatan 2/3';
             let teks = jumlahPelanggaran === 1 ? 'Anda terdeteksi ' + jenis + '. Aktivitas ini dicatat!' : 'JANGAN tinggalkan layar ujian! Sekali lagi keluar, ujian ditutup paksa.';
             
-            // Beri tahu sistem bahwa ini pop-up resmi agar tidak kena tilang dobel
-            izinKeluarResmi = true;
-
             Swal.fire({ 
+                target: document.getElementById('area-iframe'), // <-- KUNCI UTAMA AGAR TETAP FULLSCREEN
                 icon: 'warning', 
                 title: judul, 
                 text: teks,
                 allowOutsideClick: false,
                 confirmButtonText: 'Kembali Ujian',
                 preConfirm: () => {
-                    // Paksa masuk fullscreen SAAT tombol diklik
+                    // Paksa masuk layar penuh lagi SAAT tombol ditekan
                     let area = document.getElementById('area-iframe');
                     if (area.requestFullscreen) { area.requestFullscreen(); }
                     else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); }
                 }
             }).then(() => {
-                izinKeluarResmi = false; // Cabut izin setelah masuk fullscreen
+                izinKeluarResmi = false; 
+                isSedangDitilang = false; // Buka kembali kunci sistem tilang
             });
 
         } else if (jumlahPelanggaran >= 3) {
             keluarUjianPaksa(); 
+            
+            // Tunggu aplikasi kembali ke dashboard, baru tembak kartu merah
             setTimeout(() => {
                 Swal.fire({ icon: 'error', title: 'UJIAN DIHENTIKAN!', text: 'Anda telah diblokir karena 3x pelanggaran. Segera lapor ke Pengawas!', confirmButtonText: 'Mengerti', allowOutsideClick: false });
-            }, 500);
+            }, 600);
         }
     }
 
@@ -1225,14 +1237,24 @@
         if (dataGlobalAdmin.logs.length === 0) { wadah.innerHTML = "<p style='text-align:center; font-size:12px; color:gray;'>Tidak ada pelanggaran tercatat.</p>"; return; }
         
         dataGlobalAdmin.logs.forEach(item => {
+            // Jika keterangan kosong, beri nilai default
+            let ket = item.keterangan ? item.keterangan : "Tidak ada detail";
+            let kelas = item.kelas ? item.kelas : "-";
+
             wadah.innerHTML += `
                 <div class="list-monitor-item status-bahaya" style="flex-direction: column; align-items: flex-start; gap: 5px;">
                     <div style="display: flex; justify-content: space-between; width: 100%;">
                         <span style="font-weight: 700; font-size: 13px; color: var(--primary);">${item.nama}</span>
-                        <span style="font-size: 10px; color: #ef4444; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">${item.waktu.split(' ')[1]}</span>
+                        <span style="font-size: 10px; color: #ef4444; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">${item.waktu.split(' ')[1] || item.waktu}</span>
                     </div>
-                    <div style="font-size: 11px; color: var(--text-muted);">
+                    <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">
+                        Kelas: ${kelas} | Mapel: ${item.mapel}
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
                         <i class="fas fa-ban" style="color: #ef4444; margin-right: 4px;"></i> ${item.jenis}
+                    </div>
+                    <div style="font-size: 10px; color: #f59e0b; background: #fef3c7; padding: 3px 8px; border-radius: 4px; margin-top: 5px; width: 100%;">
+                        <em>Catatan: ${ket}</em>
                     </div>
                 </div>
             `;
