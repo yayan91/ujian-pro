@@ -134,7 +134,7 @@
         /* Iframe Ujian */
         .iframe-container { width: 100%; height: calc(100vh - 120px); border-radius: 15px; overflow: hidden; background: white; margin-top: 50px; }
         iframe { width: 100%; height: 100%; border: none; }
-        .btn-kembali { position: fixed; top: 10px; left: 10px; background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; z-index: 99; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; }
+        .btn-kembali { position: fixed; top: 10px; left: 10px; background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; z-index: 9999; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; }
         
         .info-ujian-overlay {
             position: fixed; top: 15px; right: 20px;
@@ -574,15 +574,6 @@
         <p>Internet Anda mati atau berada di Mode Pesawat. Layar ujian dibekukan. Silakan nyalakan kembali data/Wi-Fi Anda untuk melanjutkan.</p>
     </div>
 
-<div id="cheat-curtain" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(220, 38, 38, 0.95); z-index: 999999; color: white; flex-direction: column; justify-content: center; align-items: center; text-align: center; backdrop-filter: blur(15px);">
-        <i class="fas fa-exclamation-triangle" style="font-size: 70px; color: #fef08a; margin-bottom: 20px; animation: pulse 1s infinite;"></i>
-        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 10px; color: white; text-shadow: 0 4px 10px rgba(0,0,0,0.3);">PELANGGARAN TERTANGKAP!</h2>
-        <p id="cheat-msg" style="font-size: 15px; color: #fecaca; max-width: 85%; line-height: 1.6; margin-bottom: 30px; font-weight: 600;"></p>
-        <button id="btn-cheat-resume" onclick="lanjutkanUjian()" style="background: #fef08a; color: #b91c1c; border: none; padding: 15px 30px; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.2);">
-            KEMBALI KE UJIAN
-        </button>
-    </div>
-
 <script>
     // MASUKKAN URL DEPLOYMENT BARU DI SINI
     const API_URL = "https://script.google.com/macros/s/AKfycbwpf1_l8OStnUGnb2Y-yMAw81s8otHQ3rsqA8zd3zPMZDJ1ZsqaBSxoXmj97bHat8ik/exec"; 
@@ -610,34 +601,31 @@
     let isUjianBerlangsung = false;
     let jumlahPelanggaran = 0;
     let waktuTilangTerakhir = 0; 
-    let izinKeluarResmi = false; 
-    
-    // --- TAMBAHAN 1: RUMUS HITUNG JARAK GPS ---
+    let prosesKeluar = false; // Flag mutlak pelindung anti-stuck
+
+    // --- RUMUS HITUNG JARAK GPS ---
     function hitungJarakGPS(lat1, lon1, lat2, lon2) {
-        const R = 6371e3; // Radius bumi dalam meter
+        const R = 6371e3; 
         const p1 = lat1 * Math.PI/180;
         const p2 = lat2 * Math.PI/180;
         const dp = (lat2-lat1) * Math.PI/180;
         const dl = (lon2-lon1) * Math.PI/180;
-
         const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c; // Hasil dalam satuan meter
+        return R * c; 
     }
 
-    // --- FUNGSI KONFIRMASI UJIAN (DENGAN GPS DINAMIS) ---
+    // --- FUNGSI KONFIRMASI UJIAN (GPS) ---
     function konfirmasiUjian(urlForm, mapel) {
         if(dataSiswaAktif.status_ujian === "Terblokir") {
             Swal.fire({ icon: 'error', title: 'Akses Diblokir!', text: 'Akses Anda dikunci karena kecurangan. Lapor ke Pengawas!' });
             return;
         }
 
-        // 1. Tarik Data Lokasi dari Backend (yang disimpan di dataSiswaAktif)
-        let latSekolah = -5.0968;  // Default (Jaga-jaga kalau kosong)
-        let lonSekolah = 119.5350; // Default
-        let batasRadius = 150;     // Default 150 Meter
+        let latSekolah = -5.0968;  
+        let lonSekolah = 119.5350; 
+        let batasRadius = 150;     
         
-        // Timpa dengan data dari Spreadsheet jika tersedia
         if (dataSiswaAktif.lokasi && dataSiswaAktif.lokasi.lat) {
             latSekolah = parseFloat(dataSiswaAktif.lokasi.lat);
             lonSekolah = parseFloat(dataSiswaAktif.lokasi.lon);
@@ -646,17 +634,13 @@
 
         Swal.fire({ title: 'Mengecek Lokasi GPS...', text: 'Pastikan GPS HP menyala.', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
 
-        // 2. Minta Izin Lokasi ke HP Siswa
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 function(position) {
                     let latSiswa = position.coords.latitude;
                     let lonSiswa = position.coords.longitude;
-                    
-                    // Hitung Jarak Pakai Rumus Haversine (Fungsi yang kita buat tadi)
                     let jarak = hitungJarakGPS(latSekolah, lonSekolah, latSiswa, lonSiswa);
 
-                    // 3. Evaluasi Jarak
                     if (jarak <= batasRadius) {
                         Swal.fire({
                             title: 'Mulai Ujian ' + mapel + '?',
@@ -664,34 +648,53 @@
                             icon: 'info', showCancelButton: true, confirmButtonColor: '#1e40af', cancelButtonColor: '#9ca3af',
                             confirmButtonText: '<i class="fas fa-play"></i> Ya, Mulai Ujian!'
                         }).then((result) => {
-                            if (result.isConfirmed) { 
-                                bukaUjian(urlForm, mapel); 
-                            }
+                            if (result.isConfirmed) { bukaUjian(urlForm, mapel); }
                         });
                     } else {
-                        // Jika Bolos/Di Luar Area
-                        Swal.fire({ 
-                            icon: 'error', 
-                            title: 'Di Luar Area Ujian!', 
-                            text: 'Jarak Anda ' + Math.round(jarak) + ' meter. Ujian hanya bisa diakses dalam radius ' + batasRadius + 'm dari sekolah.' 
-                        });
+                        Swal.fire({ icon: 'error', title: 'Di Luar Area Ujian!', text: 'Jarak Anda ' + Math.round(jarak) + ' meter. Ujian hanya bisa diakses dalam radius ' + batasRadius + 'm dari sekolah.' });
                     }
                 },
-                function(error) {
-                    Swal.fire({ icon: 'error', title: 'GPS Ditolak/Mati!', text: 'Mohon izinkan akses lokasi (GPS) pada browser/HP Anda untuk memulai ujian.' });
-                },
-                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 } // Timeout 15 detik untuk akurasi tinggi
+                function(error) { Swal.fire({ icon: 'error', title: 'GPS Ditolak/Mati!', text: 'Mohon izinkan akses lokasi pada browser/HP Anda.' }); },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 } 
             );
         } else {
             Swal.fire({ icon: 'error', title: 'Tidak Mendukung', text: 'Perangkat Anda tidak mendukung fitur GPS.' });
         }
     }
 
+    // ====================================================
+    // 1. SENSOR ANTI-CURANG (STANDBY DI BACKGROUND)
+    // ====================================================
+    document.addEventListener("visibilitychange", function() {
+        if (isUjianBerlangsung && !prosesKeluar && document.visibilityState === 'hidden') {
+            tindakKecurangan("Pindah Tab / Minimize Aplikasi");
+        }
+    });
+
+    document.addEventListener("fullscreenchange", function() {
+        if (isUjianBerlangsung && !prosesKeluar && !document.fullscreenElement) {
+            tindakKecurangan("Keluar dari Layar Penuh");
+        }
+    });
+
+    window.addEventListener("blur", function() {
+        if (isUjianBerlangsung && !prosesKeluar) {
+            setTimeout(() => {
+                if (document.hidden || !document.hasFocus()) {
+                    tindakKecurangan("Membuka Aplikasi Lain (Split Screen / Pop-up)");
+                }
+            }, 500); 
+        }
+    });
+
+    // ====================================================
+    // 2. FUNGSI BUKA & TUTUP UJIAN
+    // ====================================================
     function bukaUjian(urlForm, mapel) {
         mapelAktif = mapel;
         jumlahPelanggaran = 0; 
-        isUjianBerlangsung = true;
-        izinKeluarResmi = false; 
+        isUjianBerlangsung = true; 
+        prosesKeluar = false; 
 
         document.getElementById('header-area').style.display = 'none';
         document.getElementById('bottom-navbar').style.display = 'none';
@@ -701,15 +704,13 @@
         document.getElementById('overlay-info').style.display = 'flex';
         document.getElementById('frame-ujian').src = urlForm;
 
-        // Minta Fullscreen dulu
-        if (area.requestFullscreen) { area.requestFullscreen().then(kunciLayarNyala); }
-        else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); kunciLayarNyala(); }
+        let p = area.requestFullscreen ? area.requestFullscreen() : (area.webkitRequestFullscreen ? area.webkitRequestFullscreen() : null);
+        if(p) { p.then(kunciLayarNyala).catch(e => console.log(e)); }
 
         pantauOverlayUjian();
         mulaiHeartbeat();
     }
 
-    // --- FUNGSI TUTUP UJIAN (BERSIH & AMAN) ---
     function tutupUjian() {
         Swal.fire({
             target: document.getElementById('area-iframe'), 
@@ -724,47 +725,55 @@
             allowOutsideClick: false
         }).then((result) => {
             if (result.isConfirmed) {
-                keluarUjianPaksa(); // Eksekusi keluar jika klik YA
+                prosesKeluar = true; // Kunci semua sensor tilang
+                keluarUjianPaksa(); // Eksekusi keluar
+            } else {
+                // Pastikan tetap layar penuh jika batal
+                let area = document.getElementById('area-iframe');
+                if (!document.fullscreenElement) {
+                    let p = area.requestFullscreen ? area.requestFullscreen() : (area.webkitRequestFullscreen ? area.webkitRequestFullscreen() : null);
+                    if(p) { p.catch(e => console.log(e)); }
+                }
             }
         });
     }
 
     function keluarUjianPaksa() {
-        // Matikan semua sensor
-        isUjianBerlangsung = false;
-        izinKeluarResmi = true;
+        isUjianBerlangsung = false; 
         lepasKunciLayar();
-        
-        // Kembalikan tampilan ke normal
-        if (document.fullscreenElement) {
-            if (document.exitFullscreen) document.exitFullscreen();
-            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-        }
 
-        document.getElementById('area-iframe').style.display = 'none';
-        document.getElementById('overlay-info').style.display = 'none';
-        document.getElementById('frame-ujian').src = "";
-        
-        document.getElementById('header-area').style.display = 'block';
-        document.getElementById('bottom-navbar').style.display = 'flex';
-        
-        // Arahkan ke menu Dashboard
-        let tabHome = document.querySelector('.bottom-nav .nav-item');
-        if(tabHome) navigasi('dashboard', tabHome);
-        
-        // Tutup semua tirai peringatan (jika ada yang nyangkut)
-        document.getElementById('cheat-curtain').style.display = 'none';
+        // 1. Cabut Fullscreen lebih dulu (Mencegah DOMException / Browser Crash)
+        try {
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) { document.exitFullscreen(); }
+                else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+            }
+        } catch(e) { console.log(e); }
+
+        // 2. Beri jeda 150ms agar browser selesai keluar layar penuh, lalu hancurkan iframe
+        setTimeout(() => {
+            Swal.close(); 
+            
+            document.getElementById('area-iframe').style.display = 'none';
+            document.getElementById('overlay-info').style.display = 'none';
+            document.getElementById('frame-ujian').src = "";
+            
+            document.getElementById('header-area').style.display = 'block';
+            document.getElementById('bottom-navbar').style.display = 'flex';
+            
+            let tabHome = document.querySelector('.bottom-nav .nav-item');
+            if(tabHome) navigasi('dashboard', tabHome);
+        }, 150);
     }
 
-    // --- 3. FUNGSI TILANG KECURANGAN ---
-    let isSedangDitilang = false; // Mencegah pop-up bertumpuk error
-
-    // --- SISTEM TILANG TIRAI MERAH (ANTI TEMBUS) ---
+    // ====================================================
+    // 3. FUNGSI TILANG & HUKUMAN
+    // ====================================================
     function tindakKecurangan(jenis) {
-        if (!isUjianBerlangsung || izinKeluarResmi) return; // Abaikan jika sedang proses keluar resmi
+        if (!isUjianBerlangsung || prosesKeluar) return; 
 
         let sekarang = Date.now();
-        if (sekarang - waktuTilangTerakhir < 3000) return; // Mencegah spam sensor (Jeda 3 detik)
+        if (sekarang - waktuTilangTerakhir < 1500) return; // Cegah tilang dobel di waktu yang sama
         waktuTilangTerakhir = sekarang;
 
         jumlahPelanggaran++;
@@ -777,48 +786,50 @@
             dataSiswaAktif.status_ujian = "Terblokir"; 
         }
 
-        // Tembak Laporan ke Server
+        // Kirim data curang
         fetch(API_URL, {
             method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"},
             body: JSON.stringify({ action: "log_cheat", username: document.getElementById('set-username').value, nama: document.getElementById('set-nama').value, kelas: document.getElementById('set-kelas2').value, mapel: mapelAktif, jenis: jenisLaporan, keterangan: keteranganTilang })
-        });
+        }).catch(err => console.log(err));
 
-        // Tampilkan Tirai Hukuman
         if (jumlahPelanggaran === 1 || jumlahPelanggaran === 2) {
-            izinKeluarResmi = true; // Kunci sensor sementara saat tirai terbuka
-            
-            document.getElementById('cheat-msg').innerText = `Peringatan ${jumlahPelanggaran}/3: Anda terdeteksi ${jenis}. Jangan tinggalkan layar ujian!`;
-            document.getElementById('btn-cheat-resume').style.display = 'block';
-            document.getElementById('cheat-curtain').style.display = 'flex';
+            let judul = jumlahPelanggaran === 1 ? 'Peringatan 1/3' : 'Peringatan 2/3';
+            let teks = 'Anda terdeteksi ' + jenis + '. Aktivitas ini dicatat! Jangan ulangi.';
 
-            // Keluar fullscreen paksa untuk menampilkan tirai
-            if (document.fullscreenElement) {
-                if (document.exitFullscreen) document.exitFullscreen();
-                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-            }
+            Swal.fire({ 
+                target: document.getElementById('area-iframe'),
+                icon: 'warning', 
+                title: judul, 
+                text: teks,
+                allowOutsideClick: false,
+                confirmButtonText: '<i class="fas fa-expand"></i> Kembali Ujian',
+                confirmButtonColor: '#1e40af'
+            }).then((result) => {
+                if (result.isConfirmed && !prosesKeluar) {
+                    let area = document.getElementById('area-iframe');
+                    let p = area.requestFullscreen ? area.requestFullscreen() : (area.webkitRequestFullscreen ? area.webkitRequestFullscreen() : null);
+                    if(p) { p.catch(err => console.log(err)); }
+                }
+            });
 
         } else if (jumlahPelanggaran >= 3) {
-            // Blokir Total (Kartu Merah)
-            document.getElementById('cheat-msg').innerText = `PELANGGARAN BERAT (3/3): Ujian dihentikan paksa! Akun Anda telah diblokir. Lapor ke Pengawas segera.`;
-            document.getElementById('btn-cheat-resume').style.display = 'none'; // Sembunyikan tombol kembali
-            document.getElementById('cheat-curtain').style.display = 'flex';
-            
-            // Tunggu 3 detik, lalu lempar ke Dashboard
-            setTimeout(() => { keluarUjianPaksa(); }, 3000);
-        }
-    }
-
-    // Fungsi klik tombol di Tirai Merah
-    function lanjutkanUjian() {
-        document.getElementById('cheat-curtain').style.display = 'none'; // Tutup tirai
-        
-        // PAKSA MASUK FULLSCREEN LAGI
-        let area = document.getElementById('area-iframe');
-        if (area.requestFullscreen) { area.requestFullscreen(); }
-        else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); }
-
-        // Buka sensor anti-curang kembali setelah 1 detik
-        setTimeout(() => { izinKeluarResmi = false; }, 1000);
+			prosesKeluar = true; // Kunci mutlak agar tidak kena tilang lagi saat proses keluar
+			dataSiswaAktif.status_ujian = "Terblokir"; // Kunci akun secara lokal
+			
+			// Eksekusi keluar ujian paksa ke Dashboard
+			keluarUjianPaksa(); 
+			
+			// Tampilkan pop-up error setelah aplikasi kembali ke layar utama
+			setTimeout(() => {
+				Swal.fire({ 
+					icon: 'error', 
+					title: 'UJIAN DIHENTIKAN!', 
+					text: 'Anda telah diblokir karena 3x pelanggaran. Ujian dikunci dan segera lapor ke Pengawas!', 
+					confirmButtonText: 'Mengerti', 
+					allowOutsideClick: false 
+				});
+			}, 800); // Sedikit jeda agar transisi layar selesai dulu
+		}
     }
 	
     function pantauOverlayUjian() {
@@ -1450,9 +1461,9 @@
                 if (!iframeAda) {
                     statusLaporan = "Iframe Dihapus!";
                     tindakKecurangan("Menghapus Iframe Ujian");
-                } else if (!document.fullscreenElement && !izinKeluarResmi) {
-                    statusLaporan = "Layar Tidak Penuh";
-                }
+                } else if (!document.fullscreenElement && !prosesKeluar) {
+					statusLaporan = "Layar Tidak Penuh";
+				}
 
                 // Tembakkan sinyal ke Backend diam-diam
                 // Tembakkan sinyal ke Backend diam-diam
@@ -1494,6 +1505,16 @@
             }
         }
     }
+	
+	// --- FUNGSI MELEPAS KUNCI LAYAR WAKE LOCK ---
+	function lepasKunciLayar() {
+		if (wakeLock !== null) {
+			wakeLock.release().then(() => {
+				wakeLock = null;
+				console.log('Kunci layar dilepas.');
+			}).catch(err => console.log(err));
+		}
+	}
 	
     jalankanWaktu();
 </script>
