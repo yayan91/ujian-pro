@@ -892,8 +892,8 @@
                 username: document.getElementById('set-username').value,
                 nama: document.getElementById('set-nama').value,
                 kelas: document.getElementById('set-kelas2').value,
-                status: "Selesai Ujian" // <-- Kata kunci ini akan menurunkan angka Siswa Aktif
-				mapel: mapelAktif
+                status: "Selesai Ujian",
+                mapel: mapelAktif // <-- INI DIA KUNCI PENTINGNYA
             })
         }).catch(e => console.log(e));
         // ----------------------------------------------
@@ -1445,7 +1445,7 @@
         });
     }
 
-    // --- RENDER LOGS (KOMPAK, DITAMBAH KELAS & MAPEL) ---
+    // --- RENDER LOGS (VERSI KOMPAK DITAMBAH KELAS & MAPEL) ---
     function renderLogKecurangan() {
         const wadah = document.getElementById('list-log-kecurangan');
         wadah.innerHTML = "";
@@ -1457,7 +1457,6 @@
 
             wadah.innerHTML += `
                 <div style="background: white; border-radius: 8px; padding: 10px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 3px solid #ef4444;">
-                    
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <strong style="font-size: 12px; color: var(--primary); line-height: 1.2;">${item.nama}</strong>
                         <span style="font-size: 9px; color: #64748b; background: #f1f5f9; padding: 2px 5px; border-radius: 3px;">
@@ -1479,9 +1478,7 @@
                     </div>
                     
                     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 3px; border-top: 1px dashed #e2e8f0; padding-top: 6px;">
-                        <div style="font-size: 9px; color: #d97706; font-style: italic;">
-                            ${ket}
-                        </div>
+                        <div style="font-size: 9px; color: #d97706; font-style: italic;">${ket}</div>
                         <div style="display: flex; gap: 5px;">
                             <button onclick="aksiAdmin('block', '${item.username}')" title="Blokir Siswa" style="background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; width: 26px; height: 26px; border-radius: 4px; font-size: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center;">
                                 <i class="fas fa-lock"></i>
@@ -1491,7 +1488,6 @@
                             </button>
                         </div>
                     </div>
-
                 </div>
             `;
         });
@@ -1818,16 +1814,15 @@
                 }
 
                 // Tembakkan sinyal ke Backend diam-diam
-                // Tembakkan sinyal ke Backend diam-diam
                 fetch(API_URL, {
                     method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"},
                     body: JSON.stringify({ 
                         action: "live_status", 
                         username: document.getElementById('set-username').value,
-                        nama: document.getElementById('set-nama').value,     // <-- TAMBAHAN INI
-                        kelas: document.getElementById('set-kelas2').value,  // <-- TAMBAHAN INI
-                        status: statusLaporan
-						mapel: mapelAktif
+                        nama: document.getElementById('set-nama').value,
+                        kelas: document.getElementById('set-kelas2').value,
+                        status: statusLaporan,
+                        mapel: mapelAktif // KITA TAMBAHKAN BARIS INI
                     })
                 }).catch(err => console.log("Heartbeat tertunda"));
             }
