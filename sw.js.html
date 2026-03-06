@@ -1,12 +1,40 @@
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./sw.js')
-        .then(function(registration) {
-          console.log('Satpam PWA Mappaguru Siap! Scope:', registration.scope);
-        }, function(err) {
-          console.log('PWA Gagal didaftarkan:', err);
-        });
-    });
+const CACHE_NAME = 'mappaguru-cbt-v1';
+
+// Daftar file UI yang akan disimpan di memori HP siswa
+const urlsToCache = [
+  './',
+  './index.html',
+  './manifest.json',
+  './mp (2).png',
+  './login.png'
+];
+
+// Proses Install: Agen rahasia mendownload tampilan aplikasi
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('Membuka cache CBT...');
+        return cache.addAll(urlsToCache);
+      })
+  );
+});
+
+// Proses Fetch: Saat siswa buka aplikasi, cek apakah ada internet atau tidak
+self.addEventListener('fetch', event => {
+  // Biarkan request ke Google Apps Script (API) tetap jalan pakai internet
+  if (event.request.url.includes('script.google.com')) {
+      return; 
   }
-</script>
+
+  // Untuk file tampilan (HTML/CSS/Gambar), ambil dari memori HP jika internet putus
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        if (response) {
+          return response; // Tampilkan dari memori HP
+        }
+        return fetch(event.request); // Ambil dari internet (GitHub)
+      })
+  );
+});
