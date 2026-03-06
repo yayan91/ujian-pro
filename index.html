@@ -696,55 +696,65 @@
         mulaiHeartbeat();
     }
 
+    // --- PERBAIKAN 1: FUNGSI TUTUP UJIAN ---
     function tutupUjian() {
-        izinKeluarResmi = true; 
+        izinKeluarResmi = true; // Beri izin sistem agar tidak ditilang
 
-        Swal.fire({
-            target: document.getElementById('area-iframe'), 
-            title: 'Selesai Mengerjakan?', 
-            text: "Pastikan Anda SUDAH KLIK SUBMIT di dalam formulir sebelum keluar!", 
-            icon: 'warning',
-            showCancelButton: true, 
-            confirmButtonColor: '#10b981', 
-            cancelButtonColor: '#ef4444', 
-            confirmButtonText: 'Ya, Selesai', 
-            cancelButtonText: 'Batal',
-            allowOutsideClick: false 
-        }).then((result) => {
-            if (result.isConfirmed) { 
-                // Beri jeda 300ms agar animasi pop-up bersih, baru keluar
-                setTimeout(() => {
-                    keluarUjianPaksa(); 
-                }, 300);
-            } else {
-                izinKeluarResmi = false; 
-            }
-        });
+        // KUNCI UTAMA: Keluar dari fullscreen DULU sebelum memunculkan pop-up!
+        if (document.fullscreenElement) {
+            if (document.exitFullscreen) { document.exitFullscreen(); }
+            else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+        }
+
+        // Beri jeda 300ms agar animasi layar normal selesai, baru munculkan SweetAlert
+        setTimeout(() => {
+            Swal.fire({
+                title: 'Selesai Mengerjakan?',
+                text: "Pastikan Anda SUDAH KLIK SUBMIT di dalam formulir sebelum keluar!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#ef4444',
+                confirmButtonText: 'Ya, Selesai',
+                cancelButtonText: 'Batal',
+                allowOutsideClick: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    keluarUjianPaksa();
+                } else {
+                    // Jika pilih Batal, paksa masuk fullscreen lagi
+                    let area = document.getElementById('area-iframe');
+                    if (area.requestFullscreen) { area.requestFullscreen(); }
+                    else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); }
+                    
+                    // Kunci lagi sensornya setelah 1 detik
+                    setTimeout(() => { izinKeluarResmi = false; }, 1000);
+                }
+            });
+        }, 300);
     }
+	
+    // --- PERBAIKAN 2: FUNGSI KELUAR PAKSA ---
     function keluarUjianPaksa() {
         isUjianBerlangsung = false;
         izinKeluarResmi = true;
         lepasKunciLayar();
         
-        // Tutup paksa jika ada sisa pop-up yang nyangkut
-        Swal.close(); 
-        
-        // Jeda waktu untuk memberikan ruang browser bernapas
-        setTimeout(() => {
-            if (document.fullscreenElement) {
-                if (document.exitFullscreen) { document.exitFullscreen(); }
-                else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
-            }
+        // Pastikan layar sudah keluar dari Fullscreen
+        if (document.fullscreenElement) {
+            if (document.exitFullscreen) { document.exitFullscreen(); }
+            else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+        }
 
-            document.getElementById('header-area').style.display = 'block';
-            document.getElementById('bottom-navbar').style.display = 'flex';
-            document.getElementById('area-iframe').style.display = 'none';
-            document.getElementById('overlay-info').style.display = 'none';
-            document.getElementById('frame-ujian').src = "";
-            
-            // Paksa tampilan pindah kembali ke ikon Dashboard (Menu pertama)
-            navigasi('dashboard', document.getElementById('bottom-navbar').children[0]);
-        }, 300);
+        document.getElementById('header-area').style.display = 'block';
+        document.getElementById('bottom-navbar').style.display = 'flex';
+        document.getElementById('area-iframe').style.display = 'none';
+        document.getElementById('overlay-info').style.display = 'none';
+        document.getElementById('frame-ujian').src = "";
+        
+        // Pindah ke halaman Dashboard secara otomatis tanpa error
+        let tabHome = document.querySelector('.bottom-nav .nav-item');
+        if(tabHome) navigasi('dashboard', tabHome);
     }
 
     document.addEventListener("visibilitychange", function() {
@@ -772,10 +782,11 @@
         }
     });
 
-    let isSedangDitilang = false; // Mencegah pop-up bertumpuk
+    // --- PERBAIKAN 3: FUNGSI TILANG (HAPUS YANG LAMA, GANTI INI) ---
+    let isSedangDitilang = false; // Penjaga agar popup tidak bertumpuk
 
     function tindakKecurangan(jenis) {
-        if (isSedangDitilang) return; // Abaikan jika pop-up tilang sedang terbuka
+        if (isSedangDitilang) return; // Cegah aplikasi nyangkut karena tilang dobel
         
         let sekarang = Date.now();
         if (sekarang - waktuTilangTerakhir < 3000) return; 
@@ -791,47 +802,59 @@
             dataSiswaAktif.status_ujian = "Terblokir"; 
         }
 
-        // Tembak laporan ke server diam-diam
+        // Tembak data curang ke server
         fetch(API_URL, {
             method: 'POST', redirect: 'follow', headers: {"Content-Type": "text/plain;charset=utf-8"},
             body: JSON.stringify({ action: "log_cheat", username: document.getElementById('set-username').value, nama: document.getElementById('set-nama').value, kelas: document.getElementById('set-kelas2').value, mapel: mapelAktif, jenis: jenisLaporan, keterangan: keteranganTilang })
         });
 
+        isSedangDitilang = true;
+        izinKeluarResmi = true; // Kunci sementara agar tidak kena sensor otomatis
+
+        // KUNCI UTAMA: Paksa keluar fullscreen dulu agar pop-up PASTI muncul dan bisa diklik
+        if (document.fullscreenElement) {
+            if (document.exitFullscreen) { document.exitFullscreen(); }
+            else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+        }
+
         if (jumlahPelanggaran === 1 || jumlahPelanggaran === 2) {
-            isSedangDitilang = true; // Kunci sistem tilang
-            izinKeluarResmi = true;  // Halalkan sementara agar tidak tilang dobel
-            
             let judul = jumlahPelanggaran === 1 ? 'Peringatan 1/3' : 'Peringatan 2/3';
             let teks = jumlahPelanggaran === 1 ? 'Anda terdeteksi ' + jenis + '. Aktivitas ini dicatat!' : 'JANGAN tinggalkan layar ujian! Sekali lagi keluar, ujian ditutup paksa.';
             
-            Swal.fire({ 
-                target: document.getElementById('area-iframe'), // <-- KUNCI UTAMA AGAR TETAP FULLSCREEN
-                icon: 'warning', 
-                title: judul, 
-                text: teks,
-                allowOutsideClick: false,
-                confirmButtonText: 'Kembali Ujian',
-                preConfirm: () => {
-                    // Paksa masuk layar penuh lagi SAAT tombol ditekan
-                    let area = document.getElementById('area-iframe');
-                    if (area.requestFullscreen) { area.requestFullscreen(); }
-                    else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); }
-                }
-            }).then(() => {
-                izinKeluarResmi = false; 
-                isSedangDitilang = false; // Buka kembali kunci sistem tilang
-            });
+            // Beri jeda 500ms agar layar normal dulu, baru tembak pop-up
+            setTimeout(() => {
+                Swal.fire({ 
+                    icon: 'warning', 
+                    title: judul, 
+                    text: teks,
+                    allowOutsideClick: false,
+                    confirmButtonText: '<i class="fas fa-expand"></i> Kembali Ujian',
+                    confirmButtonColor: '#1e40af'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Saat Siswa klik "Kembali Ujian" -> Paksa masuk fullscreen lagi
+                        let area = document.getElementById('area-iframe');
+                        if (area.requestFullscreen) { area.requestFullscreen(); }
+                        else if (area.webkitRequestFullscreen) { area.webkitRequestFullscreen(); }
+
+                        // Buka kembali sensor anti-curang setelah 1 detik (beri napas ke aplikasi)
+                        setTimeout(() => {
+                            izinKeluarResmi = false;
+                            isSedangDitilang = false;
+                        }, 1000);
+                    }
+                });
+            }, 500);
 
         } else if (jumlahPelanggaran >= 3) {
             keluarUjianPaksa(); 
-            
-            // Tunggu aplikasi kembali ke dashboard, baru tembak kartu merah
             setTimeout(() => {
                 Swal.fire({ icon: 'error', title: 'UJIAN DIHENTIKAN!', text: 'Anda telah diblokir karena 3x pelanggaran. Segera lapor ke Pengawas!', confirmButtonText: 'Mengerti', allowOutsideClick: false });
-            }, 600);
+                isSedangDitilang = false;
+            }, 1000);
         }
     }
-
+	
     function pantauOverlayUjian() {
         const elJam = document.getElementById('jam-overlay');
         const elBaterai = document.getElementById('baterai-overlay');
