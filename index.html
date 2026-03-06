@@ -893,6 +893,7 @@
                 nama: document.getElementById('set-nama').value,
                 kelas: document.getElementById('set-kelas2').value,
                 status: "Selesai Ujian" // <-- Kata kunci ini akan menurunkan angka Siswa Aktif
+				mapel: mapelAktif
             })
         }).catch(e => console.log(e));
         // ----------------------------------------------
@@ -1398,7 +1399,7 @@
         });
     }
 
-    // --- RENDER RADAR ---
+    // --- RENDER RADAR LIVE (DITAMBAH INFO KELAS & MAPEL) ---
     function renderRadarLive() {
         const wadah = document.getElementById('list-live-monitor');
         wadah.innerHTML = "";
@@ -1408,14 +1409,35 @@
             let statusClass = "status-aman";
             let icon = '<i class="fas fa-check-circle" style="color: #10b981; font-size: 20px;"></i>';
             
-            if (item.status.includes("Layar Tidak Penuh")) { statusClass = "status-waspada"; icon = '<i class="fas fa-exclamation-triangle" style="color: #f59e0b; font-size: 20px;"></i>'; }
-            else if (item.status.includes("Iframe Dihapus") || item.status.includes("Curang")) { statusClass = "status-bahaya"; icon = '<i class="fas fa-times-circle" style="color: #ef4444; font-size: 20px;"></i>'; }
+            if (item.status.includes("Layar Tidak Penuh")) { 
+                statusClass = "status-waspada"; 
+                icon = '<i class="fas fa-exclamation-triangle" style="color: #f59e0b; font-size: 20px;"></i>'; 
+            }
+            else if (item.status.includes("Iframe Dihapus") || item.status.includes("Curang")) { 
+                statusClass = "status-bahaya"; 
+                icon = '<i class="fas fa-times-circle" style="color: #ef4444; font-size: 20px;"></i>'; 
+            } else if (item.status === "Selesai Ujian") {
+                statusClass = ""; 
+                icon = '<i class="fas fa-flag-checkered" style="color: #64748b; font-size: 20px;"></i>';
+            }
 
             wadah.innerHTML += `
-                <div class="list-monitor-item ${statusClass}">
-                    <div>
+                <div class="list-monitor-item ${statusClass}" style="padding: 12px 15px;">
+                    <div style="flex: 1; padding-right: 10px;">
                         <div style="font-weight: 700; font-size: 13px; color: var(--primary);">${item.nama}</div>
-                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Kls: ${item.kelas} | <span style="font-weight:600;">${item.status}</span></div>
+                        
+                        <div style="margin-top: 5px; display: flex; gap: 6px; flex-wrap: wrap;">
+                            <span style="background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600;">
+                                <i class="fas fa-door-open"></i> ${item.kelas}
+                            </span>
+                            <span style="background: #e0f2fe; color: #0284c7; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600;">
+                                <i class="fas fa-book"></i> ${item.mapel}
+                            </span>
+                        </div>
+
+                        <div style="margin-top: 4px; font-size: 11px; font-weight: 600; color: ${statusClass === 'status-aman' ? '#10b981' : (statusClass === 'status-bahaya' ? '#ef4444' : (statusClass === 'status-waspada' ? '#f59e0b' : '#64748b'))}">
+                            ${item.status}
+                        </div>
                     </div>
                     <div>${icon}</div>
                 </div>
@@ -1423,7 +1445,7 @@
         });
     }
 
-    // --- RENDER LOGS (VERSI KOMPAK + TOMBOL HAPUS) ---
+    // --- RENDER LOGS (KOMPAK, DITAMBAH KELAS & MAPEL) ---
     function renderLogKecurangan() {
         const wadah = document.getElementById('list-log-kecurangan');
         wadah.innerHTML = "";
@@ -1435,24 +1457,41 @@
 
             wadah.innerHTML += `
                 <div style="background: white; border-radius: 8px; padding: 10px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 3px solid #ef4444;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <strong style="font-size: 12px; color: var(--primary);">${item.nama}</strong>
-                        <span style="font-size: 9px; color: #64748b;">${formatWaktuLengkap(item.waktu)}</span>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <strong style="font-size: 12px; color: var(--primary); line-height: 1.2;">${item.nama}</strong>
+                        <span style="font-size: 9px; color: #64748b; background: #f1f5f9; padding: 2px 5px; border-radius: 3px;">
+                            ${formatWaktuLengkap(item.waktu)}
+                        </span>
+                    </div>
+
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                        <span style="background: #e0f2fe; color: #0284c7; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600;">
+                            <i class="fas fa-layer-group"></i> ${item.kelas}
+                        </span>
+                        <span style="background: #f3e8ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600;">
+                            <i class="fas fa-book"></i> ${item.mapel}
+                        </span>
                     </div>
                     
-                    <div style="font-size: 10px; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;">
-                        <span><i class="fas fa-ban text-red-500"></i> ${item.jenis}</span>
-                        <span style="background: #fef3c7; color: #d97706; padding: 2px 6px; border-radius: 4px;">${ket}</span>
+                    <div style="font-size: 10px; color: #ef4444; margin-top: 2px; font-weight: 600;">
+                        <i class="fas fa-ban"></i> ${item.jenis}
                     </div>
                     
-                    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; border-top: 1px dashed #e2e8f0; padding-top: 6px;">
-                        <button onclick="aksiAdmin('block', '${item.username}')" style="background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; padding: 4px 12px; border-radius: 4px; font-size: 9px; font-weight: 600; cursor: pointer;">
-                            <i class="fas fa-lock"></i> Blokir
-                        </button>
-                        <button onclick="hapusSatuLog('${rawTime}', '${item.username}')" style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; padding: 4px 12px; border-radius: 4px; font-size: 9px; font-weight: 600; cursor: pointer;">
-                            <i class="fas fa-trash"></i> Hapus
-                        </button>
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 3px; border-top: 1px dashed #e2e8f0; padding-top: 6px;">
+                        <div style="font-size: 9px; color: #d97706; font-style: italic;">
+                            ${ket}
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <button onclick="aksiAdmin('block', '${item.username}')" title="Blokir Siswa" style="background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; width: 26px; height: 26px; border-radius: 4px; font-size: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center;">
+                                <i class="fas fa-lock"></i>
+                            </button>
+                            <button onclick="hapusSatuLog('${rawTime}', '${item.username}')" title="Hapus Log" style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; width: 26px; height: 26px; border-radius: 4px; font-size: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
+
                 </div>
             `;
         });
@@ -1788,6 +1827,7 @@
                         nama: document.getElementById('set-nama').value,     // <-- TAMBAHAN INI
                         kelas: document.getElementById('set-kelas2').value,  // <-- TAMBAHAN INI
                         status: statusLaporan
+						mapel: mapelAktif
                     })
                 }).catch(err => console.log("Heartbeat tertunda"));
             }
