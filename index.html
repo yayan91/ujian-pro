@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mappaguru Exam</title>
+
+	<link rel="icon" href="./1234.png" type="image/png">
+    <link rel="shortcut icon" href="./1234.png" type="image/png">
+    
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#1e40af">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mappaguru">
+    <link rel="apple-touch-icon" href="./1234.png">
+	
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	
+	<link rel="stylesheet" href="style.min.css">
+   
+</head>
+<body>
+
+<div id="login-screen">
+	<i class="fas fa-info-circle info-icon-login" onclick="bukaPanduanMappaguru()" title="Panduan Ujian"></i>
+    <div class="login-box">
+        <img src="https://lh3.googleusercontent.com/u/0/d/1Z6g-sCdw-k7W8dnw12NeagPkroLlmk-L" alt="Logo" class="logo-login">
+        
+        <h2 class="title-mappaguru">Mappaguru Exam</h2>
+        
+        <p class="exam-type">Ujian Online Berbasis Smartphone</p>
+        
+        <p class="subtitle">UPT SPF SMP Negeri 16 Makassar</p>
+        
+        <div class="input-group">
+            <i class="fas fa-user"></i>
+            <input type="text" id="username" placeholder="NISN / Username" required>
+        </div>
+        <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="password" placeholder="Password" required>
+            <i class="fas fa-eye eye-icon" onclick="togglePassword()"></i>
+        </div>
+        <button class="btn-login" onclick="doLogin()" id="btn-login-text">Masuk Sekarang</button>
+        <p id="login-msg" style="color: #fca5a5; margin-top: 15px; font-size: 13px; font-weight: 600;"></p>
+    </div>
+</div>
+
+<div id="main-app">
+    <div class="header" id="header-area">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="flex: 1; padding-right: 10px;">
+                <h3>Halo, <span id="user-name-display">Siswa</span> 👋</h3>
+                <p>Kelas <span id="user-kelas"></span> | NISN: <span id="user-nisn"></span></p>
+                <div style="margin-top: 10px; font-size: 11px; font-weight: 400; color: rgba(255,255,255,0.9);">
+                    <i class="far fa-calendar-alt"></i> <span id="live-date">Memuat tanggal...</span><br>
+                    <i class="far fa-clock"></i> <span id="live-time">00:00:00</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 8px;">
+                <button onclick="sinkronData()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; width: 38px; height: 38px; border-radius: 12px; cursor: pointer; font-size: 14px; backdrop-filter: blur(5px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center;" title="Sinkron Data">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button onclick="logout()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; width: 38px; height: 38px; border-radius: 12px; cursor: pointer; font-size: 14px; backdrop-filter: blur(5px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center;" title="Keluar">
+                    <i class="fas fa-power-off"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-area">
+        
+        <div id="page-dashboard" class="page active">
+            <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%); color: white; border: none; box-shadow: 0 15px 30px rgba(30,64,175,0.3);">
+                <div class="card-title" style="color: var(--accent); font-size: 18px;">Siap Ujian?</div>
+                <p style="font-size: 13px; opacity: 0.9; margin-top: 5px;">Pastikan koneksi internet stabil. Kerjakan dengan jujur dan teliti.</p>
+            </div>
+            <h4 style="margin: 20px 0 10px 5px; color: var(--text-main); font-size: 15px;">Aktivitas Terkini</h4>
+            <div id="dashboard-info" class="card">
+                <p class="card-desc" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Menarik data...</p>
+            </div>
+        </div>
+
+        <div id="page-pengumuman" class="page">
+            <div class="header-banner" style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); box-shadow: 0 10px 20px rgba(245, 158, 11, 0.2);">
+                <i class="fas fa-bullhorn"></i>
+                <div class="header-banner-text">
+                    <h4>Info Sekolah</h4>
+                    <p>Pengumuman penting untuk Anda</p>
+                </div>
+            </div>
+            
+            <div id="list-pengumuman">
+                <div class="card"><p class="card-desc" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Memuat...</p></div>
+            </div>
+        </div>
+
+        <div id="page-ujian" class="page">
+            <div class="header-banner" style="background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%); box-shadow: 0 10px 20px rgba(30, 64, 175, 0.2);">
+                <i class="fas fa-laptop-code" style="color: var(--accent);"></i>
+                <div class="header-banner-text">
+                    <h4>Daftar Ujian Anda</h4>
+                    <p>Pilih mata pelajaran yang aktif</p>
+                </div>
+            </div>
+            
+            <div id="list-ujian" class="grid-2-col">
+                <div class="card" style="grid-column: span 2;"><p class="card-desc" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Memuat jadwal...</p></div>
+            </div>
+        </div>
+
+        <div id="page-hasil" class="page">
+            <div class="header-banner" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">
+                <i class="fas fa-award"></i>
+                <div class="header-banner-text">
+                    <h4>Rekap Nilai</h4>
+                    <p>Hasil ujian yang telah Anda kerjakan</p>
+                </div>
+            </div>
+            
+            <div id="list-hasil">
+                <div class="card"><p class="card-desc" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Memuat nilai...</p></div>
+            </div>
+        </div>
+
+        <div id="page-pengaturan" class="page">
+            <div class="card">
+                <h4 style="margin-bottom: 20px; color: var(--primary);">Profil Saya</h4>
+                <label class="form-label">NISN (Terkunci)</label>
+                <input type="text" id="set-nisn" class="form-input" readonly style="background: #e2e8f0; color: #64748b; padding: 10px; margin-bottom: 10px;">
+                
+                <label class="form-label">Nama Lengkap (Terkunci)</label>
+                <input type="text" id="set-nama" class="form-input" readonly style="background: #e2e8f0; color: #64748b; padding: 10px; margin-bottom: 10px;">
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <div style="flex: 1;">
+                        <label class="form-label">Kelas</label>
+                        <input type="text" id="set-kelas2" class="form-input" readonly style="background: #e2e8f0; color: #64748b; padding: 10px; margin-bottom: 0;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="form-label">Tingkat</label>
+                        <input type="text" id="set-tingkatan" class="form-input" readonly style="background: #e2e8f0; color: #64748b; padding: 10px; margin-bottom: 0;">
+                    </div>
+                </div>
+
+                <label class="form-label">Username (Terkunci)</label>
+                <input type="text" id="set-username" class="form-input" readonly style="background: #e2e8f0; color: #64748b; padding: 10px; margin-bottom: 15px;">
+                
+                <hr style="border: 0; border-top: 1px dashed #cbd5e1; margin: 20px 0;">
+                
+                <label class="form-label" style="color: var(--primary);">Ganti Password Baru</label>
+                <input type="password" id="new-password" class="form-input" placeholder="Ketik password baru...">
+                <button class="btn-save" onclick="simpanPassword()"><i class="fas fa-save"></i> Simpan Password Baru</button>
+            </div>
+        </div>
+        
+        <div class="footer-app">
+            <div class="footer-title">EXAM PROJECT</div>
+            <p>Muhammad Hasratul - Developer & Founder</p>
+            <p>© <span id="tahun-aktif">2026</span> Mappaguru Online</p>
+        </div>
+    </div>
+
+    <div id="area-iframe" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-light); z-index: 900;">
+        <button class="btn-kembali" onclick="tutupUjian()"><i class="fas fa-arrow-left"></i> Keluar Ujian</button>
+        <div class="info-ujian-overlay" id="overlay-info" style="display: none;">
+            <span><i class="fas fa-clock"></i> <span id="jam-overlay">00:00</span></span>
+            <span><i class="fas fa-battery-half"></i> <span id="baterai-overlay">100%</span></span>
+        </div>
+        
+        <div class="iframe-container" id="wadah-iframe">
+            <iframe id="frame-ujian" src=""></iframe>
+        </div>
+
+        <div class="ujian-toolbar" id="toolbar-ujian" style="display: none;">
+            <div class="toolbar-timer" id="timer-ujian">00:00</div>
+            <button class="toolbar-btn" onclick="zoomIframe()" title="Perbesar Layar"><i class="fas fa-search-plus"></i></button>
+            <button class="toolbar-btn" onclick="refreshIframe()" title="Muat Ulang Soal"><i class="fas fa-sync-alt"></i></button>
+        </div>
+    </div>
+
+    <div class="bottom-nav" id="bottom-navbar">
+        <div class="nav-item active" onclick="navigasi('dashboard', this)"><i class="fas fa-home"></i>Dashboard</div>
+        <div class="nav-item" onclick="navigasi('pengumuman', this)"><i class="fas fa-bell"></i>Info</div>
+        <div class="nav-item" onclick="navigasi('ujian', this)"><i class="fas fa-file-alt"></i>Ujian</div>
+        <div class="nav-item" onclick="navigasi('hasil', this)"><i class="fas fa-chart-pie"></i>Hasil</div>
+        <div class="nav-item" onclick="navigasi('pengaturan', this)"><i class="fas fa-user-cog"></i>Profil</div>
+    </div>
+</div>
+
+<div id="admin-app">
+    <div class="header-admin">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h3>Admin Center 🛡️</h3>
+                <p style="font-size: 13px; opacity: 0.8;">Bapak/Ibu <span id="admin-name-display">Pengawas</span></p>
+            </div>
+            <button onclick="logoutAdmin()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; width: 38px; height: 38px; border-radius: 12px; cursor: pointer; display: flex; justify-content: center; align-items: center;">
+                <i class="fas fa-power-off"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <div id="page-admin-dashboard" class="page active">
+            <h4 style="margin: 0 0 15px 5px; color: var(--text-main);">Statistik Ujian</h4>
+            <div class="admin-stat-grid">
+                <div class="admin-stat-card">
+                    <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Siswa Aktif</div>
+                    <div class="admin-stat-num" style="color: #1e40af;" id="stat-aktif">0</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Terblokir</div>
+                    <div class="admin-stat-num" style="color: #ef4444;" id="stat-blokir">0</div>
+                </div>
+            </div>
+            <button class="btn-action-admin" style="background: var(--primary); color: white; margin-bottom: 20px;" onclick="tarikDataAdmin()">
+                <i class="fas fa-sync-alt"></i> Segarkan Data Sekarang
+            </button>
+        </div>
+
+        <div id="page-admin-monitor" class="page">
+            <h4 style="margin: 0 0 10px 5px; color: var(--text-main);">Radar Live Status</h4>
+            
+            <button onclick="hapusSemuaLive()" style="width:100%; background: #f59e0b; color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 600; margin-bottom: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2);">
+                <i class="fas fa-broom"></i> Bersihkan Radar (Sesi Baru)
+            </button>
+			<div style="position: relative; margin-bottom: 15px;">
+                <input type="text" id="search-radar" class="form-input" placeholder="🔍 Cari nama atau kelas..." onkeyup="renderRadarLive()" style="padding: 12px 15px; margin-bottom: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+            </div>
+            <div id="list-live-monitor">
+                <p style="text-align: center; font-size: 13px; color: var(--text-muted);">Klik "Segarkan Data" di Dashboard.</p>
+            </div>
+        </div>
+
+        <div id="page-admin-log" class="page">
+            <h4 style="margin: 0 0 10px 5px; color: var(--text-main);">Log Pelanggaran</h4>
+            <button onclick="hapusSemuaLog()" style="width:100%; background: #ef4444; color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 600; margin-bottom: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);">
+                <i class="fas fa-trash-alt"></i> Kosongkan Semua Log
+            </button>
+			<div style="position: relative; margin-bottom: 15px;">
+                <input type="text" id="search-log" class="form-input" placeholder="🔍 Cari nama atau pelanggaran..." onkeyup="renderLogKecurangan()" style="padding: 12px 15px; margin-bottom: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+            </div>
+            <div id="list-log-kecurangan">
+                <p style="text-align: center; font-size: 13px; color: var(--text-muted);">Belum ada data ditarik.</p>
+            </div>
+        </div>
+
+       <div id="page-admin-kendali" class="page">
+            <h4 style="margin: 0 0 15px 5px; color: var(--text-main);">Tindakan Darurat</h4>
+            
+            <div class="card" style="border-left: 4px solid #10b981; padding: 15px;">
+                <div class="card-title"><i class="fas fa-unlock-alt"></i> Buka Blokir Siswa</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px;">
+                    <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Data per halaman:</span>
+                    <select id="admin-pagination" onchange="renderDaftarBlokir()" style="padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 11px; outline: none; background: #f8fafc;">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="9999">Semua</option>
+                    </select>
+                </div>
+                <div id="list-admin-blocked" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                    <p style="text-align: center; font-size: 12px; color: #94a3b8;">Tidak ada siswa terblokir.</p>
+                </div>
+            </div>
+
+            <div class="card" style="border-left: 4px solid #f59e0b; padding: 15px; position: relative;">
+                <div class="card-title"><i class="fas fa-mobile-alt"></i> Reset Login HP</div>
+                <p class="card-desc" style="margin-bottom: 10px;">Ketik Nama siswa untuk mencari, lalu pilih dari daftar.</p>
+                
+                <div style="position: relative;">
+                    <input type="text" id="input-search-nama" class="form-input" placeholder="🔍 Ketik nama siswa..." autocomplete="off" onkeyup="cariNamaSiswa()" style="margin-bottom: 5px;">
+                    <div id="box-autocomplete" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; max-height: 180px; overflow-y: auto; background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 100;"></div>
+                </div>
+                
+                <input type="hidden" id="target-reset-username"> <div id="info-siswa-terpilih" style="display: none; background: #f8fafc; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 12px; border: 1px solid #e2e8f0;">
+                    Siswa terpilih: <br><strong id="lbl-nama-reset" style="color: var(--primary);"></strong> (<span id="lbl-kls-reset"></span>)
+                </div>
+
+                <button class="btn-action-admin btn-reset" onclick="aksiAdmin('reset_device')"><i class="fas fa-sync"></i> Reset Device ID Siswa</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav" id="bottom-navbar-admin">
+        <div class="nav-item active" onclick="navigasiAdmin('admin-dashboard', this)"><i class="fas fa-chart-bar"></i>Statistik</div>
+       <div class="nav-item" onclick="navigasiAdmin('admin-monitor', this)"><i class="fas fa-broadcast-tower"></i>Radar</div>
+        <div class="nav-item" onclick="navigasiAdmin('admin-log', this)"><i class="fas fa-clipboard-list"></i>Logs</div>
+        <div class="nav-item" onclick="navigasiAdmin('admin-kendali', this)"><i class="fas fa-tools"></i>Kendali</div>
+    </div>
+</div>
+
+<div id="offline-curtain">
+        <i class="fas fa-wifi-slash"></i>
+        <h2>Koneksi Terputus!</h2>
+        <p>Internet Anda mati atau berada di Mode Pesawat. Layar ujian dibekukan. Silakan nyalakan kembali data/Wi-Fi Anda untuk melanjutkan.</p>
+    </div>
+
+<script src="script.obfuscated.js"></script>
+</body>
+</html>
